@@ -1,28 +1,6 @@
-/******************************************************************************
- *  Compilation:  javac Edge.java
- *  Execution:    java Edge
- *  Dependencies: StdOut.java
- *
- *  Immutable weighted edge.
- *
- ******************************************************************************/
 
-//  package edu.princeton.cs.algs4;
  package org.example;
- /**
-  *  The <tt>Edge</tt> class represents a weighted edge in an 
-  *  {@link EdgeWeightedGraph}. Each edge consists of two integers
-  *  (naming the two vertices) and a real-value weight. The data type
-  *  provides methods for accessing the two endpoints of the edge and
-  *  the weight. The natural order for this data type is by
-  *  ascending order of weight.
-  *  <p>
-  *  For additional documentation, see <a href="http://algs4.cs.princeton.edu/43mst">Section 4.3</a> of
-  *  <i>Algorithms, 4th Edition</i> by Robert Sedgewick and Kevin Wayne.
-  *
-  *  @author Robert Sedgewick
-  *  @author Kevin Wayne
-  */
+
  public class Edge implements Comparable<Edge> { 
  
      private final int v;

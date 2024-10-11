@@ -1,5 +1,5 @@
 /******************************************************************************
- *  Compilation:  javac EdgeWeightedGraph.java
+*  Compilation:  javac EdgeWeightedGraph.java
  *  Execution:    java EdgeWeightedGraph filename.txt
  *  Dependencies: LinkedList.java Edge.java In.java StdOut.java
  *  Data files:   http://algs4.cs.princeton.edu/43mst/tinyEWG.txt
@@ -27,6 +27,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Set;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.Scanner;
 // import java.util.Stack;
 
 // import edu.princeton.cs.algs4.Edge;
@@ -73,54 +76,47 @@ import java.util.Set;
          this.V = V;
          this.E = 0;
          adj = new HashMap<>();
-        //  for (int v = 0; v < V; v++) {
-        //      adj[v] = new Set<Edge>();
-        //  }
      }
-    //  /**  
-    //   * Initializes an edge-weighted graph from an input stream.
-    //   * The format is the number of vertices <em>V</em>,
-    //   * followed by the number of edges <em>E</em>,
-    //   * followed by <em>E</em> pairs of vertices and edge weights,
-    //   * with each entry separated by whitespace.
-    //   *
-    //   * @param  in the input stream
-    //   * @throws IndexOutOfBoundsException if the endpoints of any edge are not in prescribed range
-    //   * @throws IllegalArgumentException if the number of vertices or edges is negative
-    //   */
-    //  public EdgeWeightedGraph(In in) {
-    //      this(in.readInt());
-    //      int E = in.readInt();
-    //      if (E < 0) throw new IllegalArgumentException("Number of edges must be nonnegative");
-    //      for (int i = 0; i < E; i++) {
-    //          int v = in.readInt();
-    //          int w = in.readInt();
-    //          double weight = in.readDouble();
-    //          Edge e = new Edge(v, w, weight);
-    //          addEdge(e);
-    //      }
-    //  }
- 
-     /**
-      * Initializes a new edge-weighted graph that is a deep copy of <tt>G</tt>.
-      *
-      * @param  G the edge-weighted graph to copy
-      */
-    //  public EdgeWeightedGraph(EdgeWeightedGraph G) {
-    //      this(G.V());
-    //      this.E = G.E();
-    //      for (int v = 0; v < G.V(); v++) {
-    //          // reverse so that adjacency list is in same order as original
-    //          Stack<Edge> reverse = new Stack<Edge>();
-    //          for (Edge e : G.adj[v]) {
-    //              reverse.push(e);
-    //          }
-    //          for (Edge e : reverse) {
-    //              adj[v].add(e);
-    //          }
-    //      }
-    //  }
- 
+
+     // build graph from input file
+     public Graph(File file){
+         File input1 = file;
+         Scanner sc = new Scanner(System.in);
+        try {
+            sc = new Scanner(input1);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        String[] VE = sc.nextLine().split(" ");
+        int V = Integer.parseInt(VE[0]);
+        int E = Integer.parseInt(VE[1]);
+        this.V = V;
+        this.E = E;
+        adj = new HashMap<>();
+        System.out.println(V);
+        System.out.println(E);
+
+        for (int i = 0; i < V; i++) {
+            String[] vertex = sc.nextLine().split(" ");
+            int v = Integer.parseInt(vertex[0]);
+            System.out.println(v);
+            float lo = Float.parseFloat(vertex[1]);
+            float la = Float.parseFloat(vertex[2]);
+            addVertex(v);
+        }
+        for (int i = 0; i < E; i++) {
+            String line = sc.nextLine();
+            String[] edge = line.split(" ");
+            int v = Integer.parseInt(edge[0]);
+            int w = Integer.parseInt(edge[1]);
+            System.out.println(v + " " + w);
+            int weight = Integer.parseInt(edge[2]);
+            Edge e = new Edge(v, w, weight);
+            addEdge(e);
+        }
+        sc.close();
+    }
  
      /**
       * Returns the number of vertices in this edge-weighted graph.

@@ -3,7 +3,7 @@
 /******************************************************************************
  *  Compilation:  javac DijkstraUndirectedSP.java
  *  Execution:    java DijkstraUndirectedSP input.txt s
- *  Dependencies: EdgeWeightedGraph.java IndexMinPQ.java Stack.java Edge.java
+ *  Dependencies: Grap.java IndexMinPQ.java Stack.java Edg.java
  *  Data files:   https://algs4.cs.princeton.edu/43mst/tinyEWG.txt
  *                https://algs4.cs.princeton.edu/43mst/mediumEWG.txt
  *                https://algs4.cs.princeton.edu/43mst/largeEWG.txt
@@ -41,85 +41,96 @@ package org.example;
 
 import java.util.Stack;
 
-import edu.princeton.cs.algs4.Edge;
-import edu.princeton.cs.algs4.EdgeWeightedGraph;
+// import edu.princeton.cs.algs4.Edg;
+// import edu.princeton.cs.algs4.Grap;
 import edu.princeton.cs.algs4.IndexMinPQ;
 
 /**
  *  The {@code DijkstraUndirectedSP} class represents a data type for solving
- *  the single-source shortest paths problem in edge-weighted graphs
- *  where the edge weights are non-negative.
+ *  the single-source shortest paths problem in Edg-weighted graps
+ *  where the Edg weights are non-negative.
  *  <p>
  *  This implementation uses Dijkstra's algorithm with a binary heap.
  *  The constructor takes &Theta;(<em>E</em> log <em>V</em>) time in the
  *  worst case, where <em>V</em> is the number of vertices and
- *  <em>E</em> is the number of edges.
+ *  <em>E</em> is the number of Edgs.
  *  Each instance method takes &Theta;(1) time.
  *  It uses &Theta;(<em>V</em>) extra space (not including the
- *  edge-weighted graph).
+ *  Edg-weighted grap).
  *  <p>
  *  For additional documentation,
  *  see <a href="https://algs4.cs.princeton.edu/44sp">Section 4.4</a> of
- *  <i>Algorithms, 4th Edition</i> by Robert Sedgewick and Kevin Wayne.
- *  See {@link DijkstraSP} for a version on edge-weighted digraphs.
+ *  <i>Algorithms, 4th Edition</i> by Robert SEdgwick and Kevin Wayne.
+ *  See {@link DijkstraSP} for a version on Edg-weighted digraps.
  *  <p>
  *  This correctly computes shortest paths if all arithmetic performed is
  *  without floating-point rounding error or arithmetic overflow.
- *  This is the case if all edge weights are integers and if none of the
+ *  This is the case if all Edg weights are integers and if none of the
  *  intermediate results exceeds 2<sup>52</sup>. Since all intermediate
- *  results are sums of edge weights, they are bounded by <em>V C</em>,
+ *  results are sums of Edg weights, they are bounded by <em>V C</em>,
  *  where <em>V</em> is the number of vertices and <em>C</em> is the maximum
- *  weight of any edge.
+ *  weight of any Edg.
  *  <p>
- *  @author Robert Sedgewick
+ *  @author Robert SEdgwick
  *  @author Kevin Wayne
  *  @author Nate Liu
  */
 public class Dijkstra{
     private double[] distTo;          // distTo[v] = distance  of shortest s->v path
-    private Edge[] edgeTo;            // edgeTo[v] = last edge on shortest s->v path
+    private Edge[] edgeTo;            // edgeTo[v] = last Edg on shortest s->v path
     private IndexMinPQ<Double> pq;    // priority queue of vertices
 
     /**
      * Computes a shortest-paths tree from the source vertex {@code s} to every
-     * other vertex in the edge-weighted graph {@code G}.
+     * other vertex in the Edg-weighted grap {@code G}.
      *
-     * @param  G the edge-weighted digraph
+     * @param  G the Edg-weighted digrap
      * @param  s the source vertex
-     * @throws IllegalArgumentException if an edge weight is negative
+     * @throws IllegalArgumentException if an Edg weight is negative
      * @throws IllegalArgumentException unless {@code 0 <= s < V}
      */
-    public Dijkstra(EdgeWeightedGraph G, int s) {
-        for (Edge e : G.edges()) {
+
+    public Dijkstra(){
+
+    }
+
+
+    public double runDijkstra(Graph g, int s, int t) {
+        for (Edge e : g.edges()) {
             if (e.weight() < 0)
-                throw new IllegalArgumentException("edge " + e + " has negative weight");
+                throw new IllegalArgumentException("Edg " + e + " has negative weight");
         }
 
-        distTo = new double[G.V()];
-        edgeTo = new Edge[G.V()];
+        distTo = new double[g.V()];
+        edgeTo = new Edge[g.V()];
 
-        validateVertex(s);
+        // validateVertex(s);
 
-        for (int v = 0; v < G.V(); v++)
+        for (int v = 0; v < g.V(); v++)
             distTo[v] = Double.POSITIVE_INFINITY;
         distTo[s] = 0.0;
 
         // relax vertices in order of distance from s
-        pq = new IndexMinPQ<Double>(G.V());
+        pq = new IndexMinPQ<Double>(g.V());
         pq.insert(s, distTo[s]);
+
         while (!pq.isEmpty()) {
             int v = pq.delMin();
-            for (Edge e : G.adj(v))
+            for (Edge e : g.adj(v))
                 relax(e, v);
+            if(v==t)
+                return distTo(v);
         }
-
         // check optimality conditions
-        assert check(G, s);
+        // assert check(g, s);
+        return distTo(t);
+
     }
 
-    // relax edge e and update pq if changed
+    // relax Edge e and update pq if changed
     private void relax(Edge e, int v) {
         int w = e.other(v);
+        
         if (distTo[w] > distTo[v] + e.weight()) {
             distTo[w] = distTo[v] + e.weight();
             edgeTo[w] = e;
@@ -178,14 +189,14 @@ public class Dijkstra{
 
 
     // check optimality conditions:
-    // (i) for all edges e = v-w:            distTo[w] <= distTo[v] + e.weight()
-    // (ii) for all edge e = v-w on the SPT: distTo[w] == distTo[v] + e.weight()
-    private boolean check(EdgeWeightedGraph G, int s) {
+    // (i) for all Edgs e = v-w:            distTo[w] <= distTo[v] + e.weight()
+    // (ii) for all Edg e = v-w on the SPT: distTo[w] == distTo[v] + e.weight()
+    private boolean check(Graph g, int s) {
 
-        // check that edge weights are non-negative
-        for (Edge e : G.edges()) {
+        // check that Edg weights are non-negative
+        for (Edge e : g.edges()) {
             if (e.weight() < 0) {
-                System.err.println("negative edge weight detected");
+                System.err.println("negative Edg weight detected");
                 return false;
             }
         }
@@ -195,7 +206,7 @@ public class Dijkstra{
             System.err.println("distTo[s] and edgeTo[s] inconsistent");
             return false;
         }
-        for (int v = 0; v < G.V(); v++) {
+        for (int v = 0; v < g.V(); v++) {
             if (v == s) continue;
             if (edgeTo[v] == null && distTo[v] != Double.POSITIVE_INFINITY) {
                 System.err.println("distTo[] and edgeTo[] inconsistent");
@@ -203,25 +214,25 @@ public class Dijkstra{
             }
         }
 
-        // check that all edges e = v-w satisfy distTo[w] <= distTo[v] + e.weight()
-        for (int v = 0; v < G.V(); v++) {
-            for (Edge e : G.adj(v)) {
+        // check that all Edgs e = v-w satisfy distTo[w] <= distTo[v] + e.weight()
+        for (int v = 0; v < g.V(); v++) {
+            for (Edge e : g.adj(v)) {
                 int w = e.other(v);
                 if (distTo[v] + e.weight() < distTo[w]) {
-                    System.err.println("edge " + e + " not relaxed");
+                    System.err.println("Edg " + e + " not relaxed");
                     return false;
                 }
             }
         }
 
-        // check that all edges e = v-w on SPT satisfy distTo[w] == distTo[v] + e.weight()
-        for (int w = 0; w < G.V(); w++) {
+        // check that all Edgs e = v-w on SPT satisfy distTo[w] == distTo[v] + e.weight()
+        for (int w = 0; w < g.V(); w++) {
             if (edgeTo[w] == null) continue;
             Edge e = edgeTo[w];
             if (w != e.either() && w != e.other(e.either())) return false;
             int v = e.other(w);
             if (distTo[v] + e.weight() != distTo[w]) {
-                System.err.println("edge " + e + " on shortest path not tight");
+                System.err.println("Edg " + e + " on shortest path not tight");
                 return false;
             }
         }
@@ -242,18 +253,18 @@ public class Dijkstra{
      */
     public static void main(String[] args) {
         // In in = new In(args[0]);
-        // EdgeWeightedGraph G = new EdgeWeightedGraph(in);
+        // Grap g = new Grap(in);
         // int s = Integer.parseInt(args[1]);
 
         // // compute shortest paths
-        // DijkstraUndirectedSP sp = new DijkstraUndirectedSP(G, s);
+        // DijkstraUndirectedSP sp = new DijkstraUndirectedSP(g, s);
 
 
         // // print shortest path
-        // for (int t = 0; t < G.V(); t++) {
+        // for (int t = 0; t < g.V(); t++) {
         //     if (sp.hasPathTo(t)) {
         //         StdOut.printf("%d to %d (%.2f)  ", s, t, sp.distTo(t));
-        //         for (Edge e : sp.pathTo(t)) {
+        //         for (Edg e : sp.pathTo(t)) {
         //             StdOut.print(e + "   ");
         //         }
         //         StdOut.println();
@@ -267,11 +278,11 @@ public class Dijkstra{
 }
 
 /******************************************************************************
- *  Copyright 2002-2022, Robert Sedgewick and Kevin Wayne.
+ *  Copyright 2002-2022, Robert SEdgwick and Kevin Wayne.
  *
  *  This file is part of algs4.jar, which accompanies the textbook
  *
- *      Algorithms, 4th edition by Robert Sedgewick and Kevin Wayne,
+ *      Algorithms, 4th edition by Robert SEdgwick and Kevin Wayne,
  *      Addison-Wesley Professional, 2011, ISBN 0-321-57351-X.
  *      http://algs4.cs.princeton.edu
  *

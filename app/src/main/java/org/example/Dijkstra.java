@@ -46,9 +46,10 @@ import java.util.Stack;
 import edu.princeton.cs.algs4.IndexMinPQ;
 import java.util.HashMap;
 public class Dijkstra{
-    private double[] distTo;          // distTo[v] = distance  of shortest s->v path
-    private Edge[] edgeTo;            // edgeTo[v] = last Edg on shortest s->v path
+    private HashMap<Long, Double> distTo; // distances
+    private HashMap<Long, Edge> edgeTo;   // last edge on shortest path
     private IndexMinPQ<Double> pq;    // priority queue of vertices
+    private int relaxedEdgesCount;  
 
     /**
      * Computes a shortest-paths tree from the source vertex {@code s} to every
@@ -61,60 +62,76 @@ public class Dijkstra{
      */
 
     public Dijkstra(){
+        this.relaxedEdgesCount = 0;
 
     }
 
-
-    public double runDijkstra(Graph g, int s, int t) {
+    public double runDijkstra(Graph g, long s, long t) {
+        this.relaxedEdgesCount = 0;
 
         int sIndex = g.getIndexForVertex(s);
-        int tIndex = g.getIndexForVertex(t);
-        System.out.println(sIndex);
 
-        for (Edge e : g.edges()) {
-            if (e.weight() < 0)
-                throw new IllegalArgumentException("Edge " + e + " has negative weight");
-        }
 
-        distTo = new double[g.V()];
-        edgeTo = new Edge[g.V()];
+        distTo = new HashMap<>();
+        edgeTo = new HashMap<>();
 
-        // validateVertex(s);
+        for (Long v: g.getVertexValues()){
+            distTo.put(v, Double.POSITIVE_INFINITY);
+            edgeTo.put(v, null);}
 
-        for (int v = 0; v < g.V(); v++)
-            distTo[v] = Double.POSITIVE_INFINITY;
-        distTo[sIndex] = 0.0;
+        distTo.put((long) s, 0.0);
 
-        // relax vertices in order of distance from s
+
+
         pq = new IndexMinPQ<Double>(g.V());
-        pq.insert(sIndex, distTo[sIndex]);
+        pq.insert(sIndex, distTo.get(s));
 
         while (!pq.isEmpty()) {
-            int v = pq.delMin();
-            int vertexValue = g.getVertexValue(v);
-            System.out.println(vertexValue);
-            for (Edge e : g.adj(v)){
-            // System.out.println(x);
-            
-                relax(e, v);}
-            if (v == tIndex) 
-                return distTo[tIndex];
-        }
-        // check optimality conditions
-        // assert check(g, s);
-        return distTo(tIndex);
+            int vIndex  = pq.delMin();
+            long vertexValue = g.getVertexValue(vIndex);
+            // System.out.println("Processing vertex " + vertexValue);
 
+            for (Edge e : g.adj(vertexValue)) {
+                relax(g, e, vertexValue);
+            }
+        
+            if (vertexValue == t) {
+                return distTo.get(t);
+        }
     }
 
-    // relax Edge e and update pq if changed
-    private void relax(Edge e, int v) {
-        int w = e.other(v);
+        return distTo.getOrDefault(t, Double.POSITIVE_INFINITY);
+    
+    }
+
+    public void clear() {
+        distTo.clear();
+        edgeTo.clear();
+    }   
+
+    private void relax(Graph g, Edge e, long vertexValue) {
+        // System.out.println("Relaxing edge: " + e + " from vertex: " + vertexValue);
+        long w = e.other(vertexValue);
+        int wIndex = g.getIndexForVertex(w);  
+        relaxedEdgesCount++;
         
-        if (distTo[w] > distTo[v] + e.weight()) {
-            distTo[w] = distTo[v] + e.weight();
-            edgeTo[w] = e;
-            if (pq.contains(w)) pq.decreaseKey(w, distTo[w]);
-            else                pq.insert(w, distTo[w]);
+    // can maybe remove this
+    if (distTo.get(w) == null) {
+        System.err.println("distTo[" + w + "] is null");
+        return; 
+    }
+
+    double newDist = distTo.get(vertexValue) + e.weight();
+    if (distTo.get(w) > newDist) {
+        distTo.put( w, newDist);
+        edgeTo.put( w, e);
+
+        if (pq.contains(wIndex)) {
+            pq.decreaseKey(wIndex, newDist);
+
+        } else {
+            pq.insert(wIndex, newDist);
+            }
         }
     }
 
@@ -129,8 +146,9 @@ public class Dijkstra{
      */
     public double distTo(int v) {
         validateVertex(v);
-        return distTo[v];
+        return distTo.get(v);
     }
+
 
     /**
      * Returns true if there is a path between the source vertex {@code s} and
@@ -143,7 +161,7 @@ public class Dijkstra{
      */
     public boolean hasPathTo(int v) {
         validateVertex(v);
-        return distTo[v] < Double.POSITIVE_INFINITY;
+        return distTo.get(v)< Double.POSITIVE_INFINITY;
     }
 
     /**
@@ -159,68 +177,20 @@ public class Dijkstra{
         if (!hasPathTo(v)) return null;
         Stack<Edge> path = new Stack<Edge>();
         int x = v;
-        for (Edge e = edgeTo[v]; e != null; e = edgeTo[x]) {
+        for (Edge e = edgeTo.get(v); e != null; e = edgeTo.get(x)) {
             path.push(e);
-            x = e.other(x);
+            x = (int) e.other(x);
         }
         return path;
     }
 
-
-    // check optimality conditions:
-    // (i) for all Edgs e = v-w:            distTo[w] <= distTo[v] + e.weight()
-    // (ii) for all Edg e = v-w on the SPT: distTo[w] == distTo[v] + e.weight()
-    private boolean check(Graph g, int s) {
-
-        // check that Edg weights are non-negative
-        for (Edge e : g.edges()) {
-            if (e.weight() < 0) {
-                System.err.println("negative Edg weight detected");
-                return false;
-            }
-        }
-
-        // check that distTo[v] and edgeTo[v] are consistent
-        if (distTo[s] != 0.0 || edgeTo[s] != null) {
-            System.err.println("distTo[s] and edgeTo[s] inconsistent");
-            return false;
-        }
-        for (int v = 0; v < g.V(); v++) {
-            if (v == s) continue;
-            if (edgeTo[v] == null && distTo[v] != Double.POSITIVE_INFINITY) {
-                System.err.println("distTo[] and edgeTo[] inconsistent");
-                return false;
-            }
-        }
-
-        // check that all Edgs e = v-w satisfy distTo[w] <= distTo[v] + e.weight()
-        for (int v = 0; v < g.V(); v++) {
-            for (Edge e : g.adj(v)) {
-                int w = e.other(v);
-                if (distTo[v] + e.weight() < distTo[w]) {
-                    System.err.println("Edg " + e + " not relaxed");
-                    return false;
-                }
-            }
-        }
-
-        // check that all Edgs e = v-w on SPT satisfy distTo[w] == distTo[v] + e.weight()
-        for (int w = 0; w < g.V(); w++) {
-            if (edgeTo[w] == null) continue;
-            Edge e = edgeTo[w];
-            if (w != e.either() && w != e.other(e.either())) return false;
-            int v = e.other(w);
-            if (distTo[v] + e.weight() != distTo[w]) {
-                System.err.println("Edg " + e + " on shortest path not tight");
-                return false;
-            }
-        }
-        return true;
+    public int getRelaxedEdgesCount() {
+        return relaxedEdgesCount;
     }
 
     // throw an IllegalArgumentException unless {@code 0 <= v < V}
     private void validateVertex(int v) {
-        int V = distTo.length;
+        int V = distTo.size();
         if (v < 0 || v >= V)
             throw new IllegalArgumentException("vertex " + v + " is not between 0 and " + (V-1));
     }

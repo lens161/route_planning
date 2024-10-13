@@ -3,27 +3,27 @@ package org.example;
 
 public class Edge implements Comparable<Edge> { 
 
-    private final int v;
-    private final int w;
+    private final long v;
+    private final long w;
     private final double weight;
 
     /**
      * Initializes an edge between vertices <tt>v</tt> and <tt>w</tt> of
      * the given <tt>weight</tt>.
      *
-     * @param  v one vertex
-     * @param  w the other vertex
+     * @param  v2 one vertex
+     * @param  w2 the other vertex
      * @param  weight the weight of this edge
      * @throws IndexOutOfBoundsException if either <tt>v</tt> or <tt>w</tt> 
      *         is a negative integer
      * @throws IllegalArgumentException if <tt>weight</tt> is <tt>NaN</tt>
      */
-    public Edge(int v, int w, double weight) {
+    public Edge(long v2, long w2, double weight) {
        //  if (v < 0) throw new IndexOutOfBoundsException("Vertex name must be a nonnegative integer");
        //  if (w < 0) throw new IndexOutOfBoundsException("Vertex name must be a nonnegative integer");
         if (Double.isNaN(weight)) throw new IllegalArgumentException("Weight is NaN");
-        this.v = v;
-        this.w = w;
+        this.v = v2;
+        this.w = w2;
         this.weight = weight;
     }
 
@@ -41,22 +41,22 @@ public class Edge implements Comparable<Edge> {
      *
      * @return either endpoint of this edge
      */
-    public int either() {
+    public long either() {
         return v;
     }
 
     /**
      * Returns the endpoint of this edge that is different from the given vertex.
      *
-     * @param  vertex one endpoint of this edge
+     * @param  v2 one endpoint of this edge
      * @return the other endpoint of this edge
      * @throws IllegalArgumentException if the vertex is not one of the
      *         endpoints of this edge
      */
-    public int other(int vertex) {
-        if      (vertex==v) return w;
-        else if (vertex==w) return v;
-        else throw new IllegalArgumentException("Illegal endpoint");
+    public long other(long v2) {
+        if      (v2==v) return w;
+        else if (v2==w) return v;
+        else throw new IllegalArgumentException("Illegal endpoint"+v2);
     }
 
     /**

@@ -14,9 +14,9 @@ public class Graph {
 
     private final int V;
     private int E;
-    private HashMap<Integer, Set<Edge>> adj;
-    private HashMap<Integer, Integer> vertexToIndexMap;
-    private List<Integer> vertexValues;
+    private HashMap<Long, Set<Edge>> adj;
+    private HashMap<Long, Integer> vertexToIndexMap;
+    private List<Long> vertexValues;
     
     /**
      * Initializes an empty edge-weighted graph with <tt>V</tt> vertices and 0 edges.
@@ -25,7 +25,7 @@ public class Graph {
      * @throws IllegalArgumentException if <tt>V</tt> < 0
      */
 
-   // @SuppressWarnings("unchecked")
+
    public Graph(int V) {
         if (V < 0) throw new IllegalArgumentException("Number of vertices must be nonnegative");
         this.V = V;
@@ -35,7 +35,7 @@ public class Graph {
         vertexValues = new LinkedList<>();
     }
 
-    // build graph from input file
+
     public Graph(File file){
         File input1 = file;
         Scanner sc = new Scanner(System.in);
@@ -53,15 +53,14 @@ public class Graph {
        adj = new HashMap<>();
        vertexToIndexMap = new HashMap<>();
        vertexValues = new LinkedList<>();
-       System.out.println(V);
-       System.out.println(E);
+    //    System.out.println(V);
+    //    System.out.println(E);
 
        for (int i = 0; i < V; i++) {
            String[] vertex = sc.nextLine().split(" ");
-           int v = Integer.parseInt(vertex[0]);
+           long v = Long.parseLong(vertex[0]);
            vertexToIndexMap.put(v, i);
            vertexValues.add(v);
-           System.out.println(v);
            float lo = Float.parseFloat(vertex[1]);
            float la = Float.parseFloat(vertex[2]);
            addVertex(v);
@@ -69,17 +68,17 @@ public class Graph {
        for (int i = 0; i < E; i++) {
            String line = sc.nextLine();
            String[] edge = line.split(" ");
-           int v = Integer.parseInt(edge[0]);
-           int w = Integer.parseInt(edge[1]);
-           System.out.println(v + " " + w);
+           long v = Long.parseLong(edge[0]);
+           long w = Long.parseLong(edge[1]);
            int weight = Integer.parseInt(edge[2]);
            Edge e = new Edge(v, w, weight);
            addEdge(e);
        }
        sc.close();
+       
    }
 
-   public int getVertexValue(int index) {
+   public long  getVertexValue(int index) {
     if (index < 0 || index >= vertexValues.size()) {
         throw new IllegalArgumentException("Index " + index + " is out of bounds.");
     }
@@ -117,33 +116,32 @@ public class Graph {
      * @throws IndexOutOfBoundsException unless both endpoints are between 0 and V-1
      */
     public void addEdge(Edge e) {
-        int v = e.either();
-        int w = e.other(v);
-        // addVertex(v); 
-        // addVertex(w);
+        long v = e.either();
+        long w = e.other(v);
+
         adj.get(v).add(e);
         adj.get(w).add(e);
         E++;
     }
 
-    public void addVertex(int v){
+    public void addVertex(long v2){
        Set<Edge> s = new HashSet<Edge>();
-       adj.put(v, s);
+       adj.put(v2, s);
     }
 
     /**
      * Returns the edges incident on vertex <tt>v</tt>.
      *
-     * @param  v the vertex
+     * @param  vertexValue the vertex
      * @return the edges incident on vertex <tt>v</tt> as an Iterable
      * @throws IndexOutOfBoundsException unless 0 <= v < V
      */
-    public Iterable<Edge> adj(int v) {
-       if (!adj.containsKey(v)) {
-           System.err.println("Warning: Vertex " + v + " not found in graph.");
+    public Iterable<Edge> adj(long vertexValue) {
+       if (!adj.containsKey(vertexValue)) {
+           System.err.println("Warning: Vertex " + vertexValue + " not found in graph.");
            return new HashSet<Edge>(); // Return an empty set instead of null
        }
-        return adj.get(v);
+        return adj.get(vertexValue);
     }
 
     /**
@@ -167,7 +165,7 @@ public class Graph {
      */
     public Iterable<Edge> edges() {
         LinkedList<Edge> list = new LinkedList<Edge>();
-        for (int v : adj.keySet()) {
+        for (Long v : adj.keySet()) {
             int selfLoops = 0;
             for (Edge e : adj.get(v)) {
                 if (e.other(v) > v) {
@@ -182,6 +180,9 @@ public class Graph {
         }
         return list;
     }
+    public Set<Long> getVertexValues() {
+        return adj.keySet(); 
+    }
 
     /**
      * Returns a string representation of the edge-weighted graph.
@@ -193,7 +194,7 @@ public class Graph {
     public String toString() {
         StringBuilder s = new StringBuilder();
         s.append(V + " " + E + NEWLINE);
-        for (int v : adj.keySet()) {
+        for (Long v : adj.keySet()) {
             s.append(v + ": ");
             for (Edge e : adj.get(v)) {
                 s.append(e + "  ");
@@ -203,8 +204,8 @@ public class Graph {
         return s.toString();
     }
 
-    public int getIndexForVertex(int vertex) {
-       return vertexToIndexMap.getOrDefault(vertex, -1);
+    public int getIndexForVertex(long w) {
+       return vertexToIndexMap.getOrDefault(w, -1);
    }
 
     /**

@@ -44,37 +44,7 @@ import java.util.Stack;
 // import edu.princeton.cs.algs4.Edg;
 // import edu.princeton.cs.algs4.Grap;
 import edu.princeton.cs.algs4.IndexMinPQ;
-
-/**
- *  The {@code DijkstraUndirectedSP} class represents a data type for solving
- *  the single-source shortest paths problem in Edg-weighted graps
- *  where the Edg weights are non-negative.
- *  <p>
- *  This implementation uses Dijkstra's algorithm with a binary heap.
- *  The constructor takes &Theta;(<em>E</em> log <em>V</em>) time in the
- *  worst case, where <em>V</em> is the number of vertices and
- *  <em>E</em> is the number of Edgs.
- *  Each instance method takes &Theta;(1) time.
- *  It uses &Theta;(<em>V</em>) extra space (not including the
- *  Edg-weighted grap).
- *  <p>
- *  For additional documentation,
- *  see <a href="https://algs4.cs.princeton.edu/44sp">Section 4.4</a> of
- *  <i>Algorithms, 4th Edition</i> by Robert SEdgwick and Kevin Wayne.
- *  See {@link DijkstraSP} for a version on Edg-weighted digraps.
- *  <p>
- *  This correctly computes shortest paths if all arithmetic performed is
- *  without floating-point rounding error or arithmetic overflow.
- *  This is the case if all Edg weights are integers and if none of the
- *  intermediate results exceeds 2<sup>52</sup>. Since all intermediate
- *  results are sums of Edg weights, they are bounded by <em>V C</em>,
- *  where <em>V</em> is the number of vertices and <em>C</em> is the maximum
- *  weight of any Edg.
- *  <p>
- *  @author Robert SEdgwick
- *  @author Kevin Wayne
- *  @author Nate Liu
- */
+import java.util.HashMap;
 public class Dijkstra{
     private double[] distTo;          // distTo[v] = distance  of shortest s->v path
     private Edge[] edgeTo;            // edgeTo[v] = last Edg on shortest s->v path
@@ -96,9 +66,14 @@ public class Dijkstra{
 
 
     public double runDijkstra(Graph g, int s, int t) {
+
+        int sIndex = g.getIndexForVertex(s);
+        int tIndex = g.getIndexForVertex(t);
+        System.out.println(sIndex);
+
         for (Edge e : g.edges()) {
             if (e.weight() < 0)
-                throw new IllegalArgumentException("Edg " + e + " has negative weight");
+                throw new IllegalArgumentException("Edge " + e + " has negative weight");
         }
 
         distTo = new double[g.V()];
@@ -108,22 +83,26 @@ public class Dijkstra{
 
         for (int v = 0; v < g.V(); v++)
             distTo[v] = Double.POSITIVE_INFINITY;
-        distTo[s] = 0.0;
+        distTo[sIndex] = 0.0;
 
         // relax vertices in order of distance from s
         pq = new IndexMinPQ<Double>(g.V());
-        pq.insert(s, distTo[s]);
+        pq.insert(sIndex, distTo[sIndex]);
 
         while (!pq.isEmpty()) {
             int v = pq.delMin();
-            for (Edge e : g.adj(v))
-                relax(e, v);
-            if(v==t)
-                return distTo(v);
+            int vertexValue = g.getVertexValue(v);
+            System.out.println(vertexValue);
+            for (Edge e : g.adj(v)){
+            // System.out.println(x);
+            
+                relax(e, v);}
+            if (v == tIndex) 
+                return distTo[tIndex];
         }
         // check optimality conditions
         // assert check(g, s);
-        return distTo(t);
+        return distTo(tIndex);
 
     }
 
@@ -245,36 +224,6 @@ public class Dijkstra{
         if (v < 0 || v >= V)
             throw new IllegalArgumentException("vertex " + v + " is not between 0 and " + (V-1));
     }
-
-    /**
-     * Unit tests the {@code DijkstraUndirectedSP} data type.
-     *
-     * @param args the command-line arguments
-     */
-    public static void main(String[] args) {
-        // In in = new In(args[0]);
-        // Grap g = new Grap(in);
-        // int s = Integer.parseInt(args[1]);
-
-        // // compute shortest paths
-        // DijkstraUndirectedSP sp = new DijkstraUndirectedSP(g, s);
-
-
-        // // print shortest path
-        // for (int t = 0; t < g.V(); t++) {
-        //     if (sp.hasPathTo(t)) {
-        //         StdOut.printf("%d to %d (%.2f)  ", s, t, sp.distTo(t));
-        //         for (Edg e : sp.pathTo(t)) {
-        //             StdOut.print(e + "   ");
-        //         }
-        //         StdOut.println();
-        //     }
-        //     else {
-        //         StdOut.printf("%d to %d         no path\n", s, t);
-        //     }
-        // }
-    }
-
 }
 
 /******************************************************************************

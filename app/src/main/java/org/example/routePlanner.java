@@ -1,19 +1,89 @@
 package org.example;
 
 import java.io.File;
-import java.io.FileNotFoundException;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 import java.util.Scanner;
+import java.util.Set;
+import java.io.File;
+import java.util.List;
+import java.util.Scanner;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.io.IOException;
+import java.io.PrintWriter;
 
 public class routePlanner {
 
-    public static void main(String[] args) throws FileNotFoundException {
-        File input1 = new File("/Users/lennart/Documents/00_ITU/03_Sem03/02_Applied_Algorithms/Assignment3/route-planning/app/src/main/resources/SmallTest.txt");
-        
+    public static void main(String[] args) throws IOException {
+        // File input1 = new File("/home/knor/route/route-planning/app/src/main/resources/SmallTest.txt");
+        // Graph g = new Graph(input1);
+        // Dijkstra d1 = new Dijkstra();
+        // // System.out.println(g.toString());
+        // System.out.println(d1.runDijkstra(g, 17, 19));
+        try {
+
+        File input1 = new File("/home/knor/route/route-planning/app/src/main/resources/denmark.graph");
         Graph g = new Graph(input1);
+        Dijkstra dijkstra = new Dijkstra();
+        File outputFile = new File("/home/knor/route/route-planning/app/src/main/resources/basicdijkstraresults.csv");
 
-        Dijkstra d1 = new Dijkstra();
-        System.out.println(d1.runDijkstra(g, 10, 20));
 
-        System.out.println(g.toString());
+        File randomPairsFile = new File("/home/knor/route/route-planning/app/src/main/resources/random_pairs.txt");
+
+        try (PrintWriter writer = new PrintWriter(outputFile)) {
+            writer.println("Source,Target,Distance,ExecutionTime");
+
+
+        List<String> pairs = Files.readAllLines(Paths.get(randomPairsFile.toURI()));
+        long totalExecutionTime = 0;
+        int totalRelaxedEdges = 0;
+
+        for (String pair : pairs) {
+            String[] vertices = pair.split(" ");
+            if (vertices.length != 2) {
+                System.err.println("Invalid pair: " + pair);
+                continue;
+            }
+            Long s = Long.parseLong(vertices[0]);
+            Long t = Long.parseLong(vertices[1]);
+
+            long startTime = System.nanoTime();
+            double distance = dijkstra.runDijkstra(g, s, t);
+            long endTime = System.nanoTime();
+
+            long duration = endTime - startTime;
+            totalExecutionTime += duration;
+
+            int relaxedEdges = dijkstra.getRelaxedEdgesCount();
+            totalRelaxedEdges += relaxedEdges;
+
+            
+            writer.println(s + "," + t + "," + distance + "," + duration);
+            writer.flush();
+
+            dijkstra.clear();
+            // System.out.println("Distance from " + s + " to " + t + ": " + distance);
+            
+            // System.out.println("\nAverage running time: " + averageExecutionTime + " nanoseconds");
+        }
+        double averageExecutionTime = totalExecutionTime / 1000.0;
+        System.out.println(averageExecutionTime);
+        writer.println(averageExecutionTime+" sec");
+        double averageRelaxedEdges = totalRelaxedEdges /1000.0;
+        System.out.println(averageRelaxedEdges);
+        writer.println(averageRelaxedEdges);
+        } catch (NumberFormatException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    } catch (IOException e) {
+        System.err.println("An unexpected error occurred: " + e.getMessage());
+        e.printStackTrace();
+    }
+        // System.out.println(d1.runDijkstra(g, 26672401, 26672400));
+// 
 }
 }

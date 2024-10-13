@@ -6,3 +6,5 @@ C:\Program Files\Gradle
 
 # Ignore Gradle build output directory
 build
+
+/main/resources/*.graph

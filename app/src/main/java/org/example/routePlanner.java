@@ -59,6 +59,7 @@ public class routePlanner {
 
             int relaxedEdges = dijkstra.getRelaxedEdgesCount();
             totalRelaxedEdges += relaxedEdges;
+            System.out.println(totalRelaxedEdges);
 
             
             writer.println(s + "," + t + "," + distance + "," + duration);
@@ -66,15 +67,15 @@ public class routePlanner {
 
             dijkstra.clear();
             // System.out.println("Distance from " + s + " to " + t + ": " + distance);
-            
-            // System.out.println("\nAverage running time: " + averageExecutionTime + " nanoseconds");
+        
         }
         double averageExecutionTime = totalExecutionTime / 1000.0;
-        System.out.println(averageExecutionTime);
-        writer.println(averageExecutionTime+" sec");
-        double averageRelaxedEdges = totalRelaxedEdges /1000.0;
-        System.out.println(averageRelaxedEdges);
-        writer.println(averageRelaxedEdges);
+        double averageRelaxedEdges = totalRelaxedEdges / 1000.0;
+        System.out.println("Average Execution Time: " + averageExecutionTime + " seconds");
+        System.out.println("Average Relaxed Edges: " + averageRelaxedEdges);
+
+        writer.println("Average Execution Time," + averageExecutionTime + " seconds");
+        writer.println("Average Relaxed Edges," + averageRelaxedEdges);
         } catch (NumberFormatException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();

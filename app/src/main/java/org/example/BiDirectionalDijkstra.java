@@ -63,28 +63,37 @@ public class BiDirectionalDijkstra {
         AtomicBoolean pathFound = new AtomicBoolean(false);
 
 
-        // Thread t1 for the forward search
-        Thread t1 = new Thread(() -> {
+        // Create a thread pool with 2 threads
+        ExecutorService executorService = Executors.newFixedThreadPool(2);
+
+        // Thread for the forward search
+        Callable<Void> forwardTask = () -> {
             while (!pqForward.isEmpty() && !pathFound.get()) {
-                relaxEdges(g, pqForward, distToForward, edgeToForward, distToBackward, visitedForward, visitedBackward, "Forward", pathFound);
+                relaxEdges(g, pqForward, distToForward, edgeToForward, distToBackward, visitedForward, visitedBackward, pathFound);
             }
-        });
+            return null;
+        };
 
-        // Thread t2 for the backward search
-        Thread t2 = new Thread(() -> {
+        // Thread for the backward search
+        Callable<Void> backwardTask = () -> {
             while (!pqBackward.isEmpty() && !pathFound.get()) {
-                relaxEdges(g, pqBackward, distToBackward, edgeToBackward, distToForward, visitedBackward, visitedForward, "Backward", pathFound);
+                relaxEdges(g, pqBackward, distToBackward, edgeToBackward, distToForward, visitedBackward, visitedForward, pathFound);
             }
-        });
-        t1.start();
-        t2.start();
+            return null;
+        };
 
-                try {
-                    t1.join();
-                    t2.join();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+        // Submit the tasks to the executor
+        try {
+            Future<Void> forwardFuture = executorService.submit(forwardTask);
+            Future<Void> backwardFuture = executorService.submit(backwardTask);
+
+            forwardFuture.get();
+            backwardFuture.get();
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+        } finally {
+            executorService.shutdown();
+        }
 
   
         return bestPathDistance == Double.POSITIVE_INFINITY ? -1 : bestPathDistance;
@@ -92,47 +101,50 @@ public class BiDirectionalDijkstra {
 
     private void relaxEdges(Graph g, IndexMinPQ<Double> pq, HashMap<Long, Double> distTo, HashMap<Long, Edge> edgeTo,
                             HashMap<Long, Double> oppositeDistTo, Set<Long> visitedThisDirection,
-                            Set<Long> visitedOppositeDirection, String direction, AtomicBoolean pathFound) {
+                            Set<Long> visitedOppositeDirection, AtomicBoolean pathFound) {
         if (pq.isEmpty()) return;
 
         int currentIndex = pq.delMin();
         long currentVertex = g.getVertexValue(currentIndex);
-        // System.out.println(direction + " processing vertex: " + currentVertex);
 
-        synchronized (lock) {
-            if (visitedThisDirection.contains(currentVertex)) {
-                return; // Skip if this vertex is already processed
-            }
-            visitedThisDirection.add(currentVertex);
+        // Check if the vertex is already visited
+        if (visitedThisDirection.contains(currentVertex)) {
+            return; 
         }
+        visitedThisDirection.add(currentVertex);
 
+        // Relax edges
         for (Edge e : g.adj(currentVertex)) {
             long w = e.other(currentVertex);
             int wIndex = g.getIndexForVertex(w);
             relaxedEdgesCount++;
 
-            synchronized (lock) {
-                if (distTo.get(currentVertex) + e.weight() < distTo.get(w)) {
-                    distTo.put(w, distTo.get(currentVertex) + e.weight());
-                    edgeTo.put(w, e);
+            // Update distance if a shorter path is found
+            if (distTo.get(currentVertex) + e.weight() < distTo.get(w)) {
+                distTo.put(w, distTo.get(currentVertex) + e.weight());
+                edgeTo.put(w, e);
 
-                    if (pq.contains(wIndex)) {
-                        pq.decreaseKey(wIndex, distTo.get(w));
-                    } else {
-                        pq.insert(wIndex, distTo.get(w));
-                    }
+                if (pq.contains(wIndex)) {
+                    pq.decreaseKey(wIndex, distTo.get(w));
+                } else {
+                    pq.insert(wIndex, distTo.get(w));
                 }
+            }
 
-                if (visitedOppositeDirection.contains(w)) {
-                    double potentialBestDistance = distTo.get(w) + oppositeDistTo.get(w);
-                    if (potentialBestDistance < bestPathDistance) {
-                        bestPathDistance = potentialBestDistance;
-                        meetingPoint = w;  // Update meeting point
-                        pathFound.set(true); 
+            // Check if the opposite direction has visited this node
+            if (visitedOppositeDirection.contains(w)) {
+                double potentialBestDistance = distTo.get(w) + oppositeDistTo.get(w);
+                if (potentialBestDistance < bestPathDistance) {
+                    synchronized (lock) {
+                        if (potentialBestDistance < bestPathDistance) {
+                            bestPathDistance = potentialBestDistance;
+                            meetingPoint = w;
+                            pathFound.set(true);
                 }
             }
         }
     }
+}
 }
 
     public int getRelaxedEdgesCount() {

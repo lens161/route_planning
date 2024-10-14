@@ -107,6 +107,7 @@ public class Dijkstra{
     public void clear() {
         distTo.clear();
         edgeTo.clear();
+        relaxedEdgesCount = 0;
     }   
 
     private void relax(Graph g, Edge e, long vertexValue) {

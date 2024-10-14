@@ -58,6 +58,7 @@ public class biRoutePlanner {
                 // Write the result to CSV
                 writer.println(s + "," + t + "," + distance + "," + duration);
                 writer.flush();
+                
 
                 biDijkstra.clear();
             }

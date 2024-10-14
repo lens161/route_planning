@@ -33,7 +33,6 @@ public class BiDirectionalDijkstra {
         this.bestPathDistance = Double.POSITIVE_INFINITY;
         this.meetingPoint = null;
 
-        // Initialize data structures for both directions
         distToForward = new HashMap<>();
         distToBackward = new HashMap<>();
         edgeToForward = new HashMap<>();
@@ -63,10 +62,8 @@ public class BiDirectionalDijkstra {
         AtomicBoolean pathFound = new AtomicBoolean(false);
 
 
-        // Create a thread pool with 2 threads
         ExecutorService executorService = Executors.newFixedThreadPool(2);
 
-        // Thread for the forward search
         Callable<Void> forwardTask = () -> {
             while (!pqForward.isEmpty() && !pathFound.get()) {
                 relaxEdges(g, pqForward, distToForward, edgeToForward, distToBackward, visitedForward, visitedBackward, pathFound);
@@ -74,7 +71,6 @@ public class BiDirectionalDijkstra {
             return null;
         };
 
-        // Thread for the backward search
         Callable<Void> backwardTask = () -> {
             while (!pqBackward.isEmpty() && !pathFound.get()) {
                 relaxEdges(g, pqBackward, distToBackward, edgeToBackward, distToForward, visitedBackward, visitedForward, pathFound);
@@ -82,7 +78,6 @@ public class BiDirectionalDijkstra {
             return null;
         };
 
-        // Submit the tasks to the executor
         try {
             Future<Void> forwardFuture = executorService.submit(forwardTask);
             Future<Void> backwardFuture = executorService.submit(backwardTask);
@@ -107,19 +102,16 @@ public class BiDirectionalDijkstra {
         int currentIndex = pq.delMin();
         long currentVertex = g.getVertexValue(currentIndex);
 
-        // Check if the vertex is already visited
         if (visitedThisDirection.contains(currentVertex)) {
             return; 
         }
         visitedThisDirection.add(currentVertex);
 
-        // Relax edges
         for (Edge e : g.adj(currentVertex)) {
             long w = e.other(currentVertex);
             int wIndex = g.getIndexForVertex(w);
             relaxedEdgesCount++;
 
-            // Update distance if a shorter path is found
             if (distTo.get(currentVertex) + e.weight() < distTo.get(w)) {
                 distTo.put(w, distTo.get(currentVertex) + e.weight());
                 edgeTo.put(w, e);
@@ -131,16 +123,15 @@ public class BiDirectionalDijkstra {
                 }
             }
 
-            // Check if the opposite direction has visited this node
             if (visitedOppositeDirection.contains(w)) {
                 double potentialBestDistance = distTo.get(w) + oppositeDistTo.get(w);
                 if (potentialBestDistance < bestPathDistance) {
-                    synchronized (lock) {
+                    // synchronized (lock) {
                         if (potentialBestDistance < bestPathDistance) {
                             bestPathDistance = potentialBestDistance;
                             meetingPoint = w;
                             pathFound.set(true);
-                }
+                // }
             }
         }
     }

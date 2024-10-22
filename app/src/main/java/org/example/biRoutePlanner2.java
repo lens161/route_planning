@@ -19,7 +19,7 @@ public class biRoutePlanner2 {
             return;
         }
 
-        BiDirectionalDijkstra2 biDijkstra = new BiDirectionalDijkstra2();
+        BiDirectionalDijkstra biDijkstra = new BiDirectionalDijkstra();
         File outputFile = new File("/Users/lennart/Documents/00_ITU/03_Sem03/02_Applied_Algorithms/Assignment3/route-planning/app/src/main/resources/bidirectional_dijkstra_results.csv");
 
         try (PrintWriter writer = new PrintWriter(outputFile)) {
@@ -61,7 +61,6 @@ public class biRoutePlanner2 {
 
                 biDijkstra.clear();
             }
-
 
             double averageExecutionTime = totalExecutionTime / (numberOfPairs * 1_000_000_000.0); 
             double averageRelaxedEdges = (double) totalRelaxedEdges / numberOfPairs;

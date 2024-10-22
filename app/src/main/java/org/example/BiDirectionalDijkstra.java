@@ -3,7 +3,7 @@ package org.example;
 import edu.princeton.cs.algs4.IndexMinPQ;
 import java.util.Arrays;
 
-public class BiDirectionalDijkstra2 {
+public class BiDirectionalDijkstra {
     private double[] distToForward;
     private double[] distToBackward;
     private Edge[] edgeToForward;
@@ -17,7 +17,7 @@ public class BiDirectionalDijkstra2 {
     private double bestPathDistance;
     private int meetingPoint; // index of the meeting point
 
-    public BiDirectionalDijkstra2() {
+    public BiDirectionalDijkstra() {
         this.relaxedEdgesCount = 0;
     }
 

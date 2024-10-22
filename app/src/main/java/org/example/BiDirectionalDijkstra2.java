@@ -6,8 +6,8 @@ import java.util.Arrays;
 public class BiDirectionalDijkstra2 {
     private double[] distToForward;
     private double[] distToBackward;
-    private Edge2[] edgeToForward;
-    private Edge2[] edgeToBackward;
+    private Edge[] edgeToForward;
+    private Edge[] edgeToBackward;
     private boolean[] visitedForward;
     private boolean[] visitedBackward;
     private IndexMinPQ<Double> pqForward;
@@ -21,7 +21,7 @@ public class BiDirectionalDijkstra2 {
         this.relaxedEdgesCount = 0;
     }
 
-    public double runBiDirectionalDijkstra(Graph2 g, long sVertexId, long tVertexId) {
+    public double runBiDirectionalDijkstra(Graph g, long sVertexId, long tVertexId) {
         this.relaxedEdgesCount = 0;
         this.bestPathDistance = Double.POSITIVE_INFINITY;
         this.meetingPoint = -1;
@@ -29,8 +29,8 @@ public class BiDirectionalDijkstra2 {
         int V = g.V();
         distToForward = new double[V];
         distToBackward = new double[V];
-        edgeToForward = new Edge2[V];
-        edgeToBackward = new Edge2[V];
+        edgeToForward = new Edge[V];
+        edgeToBackward = new Edge[V];
         visitedForward = new boolean[V];
         visitedBackward = new boolean[V];
 
@@ -76,10 +76,10 @@ public class BiDirectionalDijkstra2 {
         return bestPathDistance == Double.POSITIVE_INFINITY ? -1 : bestPathDistance;
     }
 
-    private void relaxEdges(Graph2 g, int v, double[] distTo, Edge2[] edgeTo,
+    private void relaxEdges(Graph g, int v, double[] distTo, Edge[] edgeTo,
                             double[] oppositeDistTo, boolean[] visitedThisDirection,
                             boolean[] visitedOppositeDirection, IndexMinPQ<Double> pq) {
-        for (Edge2 e : g.adj(v)) {
+        for (Edge e : g.adj(v)) {
             int w = e.other(v);
             relaxedEdgesCount++;
 

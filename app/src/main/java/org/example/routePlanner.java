@@ -2,16 +2,8 @@ package org.example;
 
 import java.io.File;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
-import java.util.Scanner;
-import java.util.Set;
-import java.io.File;
-import java.util.List;
-import java.util.Scanner;
 import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.io.IOException;
 import java.io.PrintWriter;
 
@@ -25,13 +17,13 @@ public class routePlanner {
         // System.out.println(d1.runDijkstra(g, 17, 19));
         try {
 
-        File input1 = new File("/home/knor/route/route-planning/app/src/main/resources/denmark.graph");
+        File input1 = new File("/Users/lennart/Documents/00_ITU/03_Sem03/02_Applied_Algorithms/Assignment3/route-planning/app/src/main/resources/denmark.graph");
         Graph g = new Graph(input1);
         Dijkstra dijkstra = new Dijkstra();
-        File outputFile = new File("/home/knor/route/route-planning/app/src/main/resources/basicdijkstraresults.csv");
+        File outputFile = new File("/Users/lennart/Documents/00_ITU/03_Sem03/02_Applied_Algorithms/Assignment3/route-planning/app/src/main/resources/basicdijkstraresults.csv");
 
 
-        File randomPairsFile = new File("/home/knor/route/route-planning/app/src/main/resources/random_pairs.txt");
+        File randomPairsFile = new File("/Users/lennart/Documents/00_ITU/03_Sem03/02_Applied_Algorithms/Assignment3/route-planning/app/src/main/resources/random_pairs.txt");
 
         try (PrintWriter writer = new PrintWriter(outputFile)) {
             writer.println("Source,Target,Distance,ExecutionTime");

@@ -16,17 +16,17 @@ import static org.junit.Assert.*;
 
 public class AppTest {
 
-    File input = new File("/Users/lennart/Documents/00_ITU/03_Sem03/02_Applied_Algorithms/Assignment3/route-planning/app/src/main/resources/SmallTest.txt");
-    Graph g = new Graph(input);
+    // File input = new File("/Users/lennart/Documents/00_ITU/03_Sem03/02_Applied_Algorithms/Assignment3/route-planning/app/src/main/resources/SmallTest.txt");
+    // Graph g = new Graph(input);
     
-    @Test public void appHasAGreeting() throws FileNotFoundException {
-        Scanner sc = new Scanner(input);
-        Iterable<Edge> edges = g.edges();
+    // @Test public void appHasAGreeting() throws FileNotFoundException {
+    //     Scanner sc = new Scanner(input);
+    //     Iterable<Edge> edges = g.edges();
 
-        for(Edge e : edges){
+    //     for(Edge e : edges){
             
-        }
+    //     }
 
 
-    }
+    // }
 }

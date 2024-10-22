@@ -11,7 +11,7 @@ public class biRoutePlanner2 {
 
     public static void main(String[] args) throws IOException {
         File graphFile = new File("/home/knor/route/route-planning/app/src/main/resources/denmark.graph");
-        Graph2 g = new Graph2(graphFile);
+        Graph g = new Graph(graphFile);
 
         File randomPairsFile = new File("/home/knor/route/route-planning/app/src/main/resources/random_pairs.txt");
         if (!randomPairsFile.exists()) {

@@ -1,12 +1,12 @@
 package org.example;
 
-public class Vertex {
+public class Vertex2 {
     private long id;
     private int index;
     private float longitude;
     private float latitude;
 
-    public Vertex(long id, int index, float longitude, float latitude){
+    public Vertex2(long id, int index, float longitude, float latitude){
         this.id = id;
         this.index = index;
         this.longitude = longitude;

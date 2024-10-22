@@ -4,7 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.*;
 
-public class Graph {
+public class Graph2 {
     private static final String NEWLINE = System.getProperty("line.separator");
 
     private final int V;
@@ -13,7 +13,7 @@ public class Graph {
     private Map<Long, Integer> vertexIdToIndexMap;
     private long[] indexToVertexId;
 
-    public Graph(File file) throws FileNotFoundException {
+    public Graph2(File file) throws FileNotFoundException {
         Scanner sc = new Scanner(file);
 
         String[] VE = sc.nextLine().split(" ");

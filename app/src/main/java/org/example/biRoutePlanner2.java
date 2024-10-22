@@ -7,11 +7,11 @@ import java.nio.file.Files;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-public class biRoutePlanner {
+public class biRoutePlanner2 {
 
     public static void main(String[] args) throws IOException {
         File graphFile = new File("/home/knor/route/route-planning/app/src/main/resources/denmark.graph");
-        Graph g = new Graph(graphFile);
+        Graph2 g = new Graph2(graphFile);
 
         File randomPairsFile = new File("/home/knor/route/route-planning/app/src/main/resources/random_pairs.txt");
         if (!randomPairsFile.exists()) {
@@ -19,7 +19,7 @@ public class biRoutePlanner {
             return;
         }
 
-        BiDirectionalDijkstra biDijkstra = new BiDirectionalDijkstra();
+        BiDirectionalDijkstra2 biDijkstra = new BiDirectionalDijkstra2();
         File outputFile = new File("/home/knor/route/route-planning/app/src/main/resources/bidirectional_dijkstra_results3.csv");
 
         try (PrintWriter writer = new PrintWriter(outputFile)) {

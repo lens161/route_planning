@@ -8,3 +8,6 @@ C:\Program Files\Gradle
 build
 
 /main/resources/*.graph
+
+.graph
+.csv

@@ -1,5 +1,8 @@
 package org.example;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+
 import edu.princeton.cs.algs4.IndexMinPQ;
 import java.util.Arrays;
 
@@ -121,4 +124,15 @@ public class BiDirectionalDijkstra {
         bestPathDistance = Double.POSITIVE_INFINITY;
         meetingPoint = -1;
     }
+
+//     public static void main(String[] args) throws FileNotFoundException {
+//         File input1 = new File("/Users/lennart/Documents/00_ITU/03_Sem03/02_Applied_Algorithms/Assignment3/route-planning/denmark.graph");
+//         Graph g = new Graph(input1);
+//         BiDirectionalDijkstra dijkstra = new BiDirectionalDijkstra();
+
+//         long start = System.nanoTime();
+//         System.out.println(dijkstra.runBiDirectionalDijkstra(g, 47021985,2064649066));
+//         long end = System.nanoTime();
+//         System.out.println((end - start));
+//     }
 }

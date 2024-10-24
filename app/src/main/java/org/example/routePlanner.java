@@ -17,10 +17,10 @@ public class routePlanner {
         // System.out.println(d1.runDijkstra(g, 17, 19));
         try {
 
-        File input1 = new File("/Users/lennart/Documents/00_ITU/03_Sem03/02_Applied_Algorithms/Assignment3/route-planning/denmark.graph");
+        File input1 = new File("/Users/lennart/Documents/00_ITU/03_Sem03/02_Applied_Algorithms/Assignment3/route-planning/denmark_new.graph");
         Graph g = new Graph(input1);
         Dijkstra dijkstra = new Dijkstra();
-        File outputFile = new File("/Users/lennart/Documents/00_ITU/03_Sem03/02_Applied_Algorithms/Assignment3/route-planning/basicdijkstraresults.csv");
+        File outputFile = new File("/Users/lennart/Documents/00_ITU/03_Sem03/02_Applied_Algorithms/Assignment3/route-planning/basicdijkstraresults_new.csv");
 
         File randomPairsFile = new File("/Users/lennart/Documents/00_ITU/03_Sem03/02_Applied_Algorithms/Assignment3/route-planning/random_pairs.txt");
 

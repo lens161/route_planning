@@ -13,14 +13,14 @@ public class biRoutePlanner2 {
         File graphFile = new File("/Users/lennart/Documents/00_ITU/03_Sem03/02_Applied_Algorithms/Assignment3/route-planning/denmark.graph");
         Graph g = new Graph(graphFile);
 
-        File randomPairsFile = new File("/Users/lennart/Documents/00_ITU/03_Sem03/02_Applied_Algorithms/Assignment3/route-planning/random_pairs.txt");
+        File randomPairsFile = new File("/Users/lennart/Documents/00_ITU/03_Sem03/02_Applied_Algorithms/Assignment3/route-planning/random_pairs_anders.txt");
         if (!randomPairsFile.exists()) {
             System.err.println("The random pairs file does not exist.");
             return;
         }
 
         BiDirectionalDijkstra biDijkstra = new BiDirectionalDijkstra();
-        File outputFile = new File("/Users/lennart/Documents/00_ITU/03_Sem03/02_Applied_Algorithms/Assignment3/route-planning/bidirectional_dijkstra_results.csv");
+        File outputFile = new File("/Users/lennart/Documents/00_ITU/03_Sem03/02_Applied_Algorithms/Assignment3/route-planning/bidirectional_dijkstra_results_anders.csv");
 
         try (PrintWriter writer = new PrintWriter(outputFile)) {
             writer.println("Source,Target,Distance,ExecutionTime");

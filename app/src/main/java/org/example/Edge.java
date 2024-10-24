@@ -5,14 +5,16 @@ public class Edge implements Comparable<Edge> {
     private final int v; 
     private final int w; 
     private final double weight;
-    private final boolean shortcut;
+    // the vertex the shortcut has been contracted from
+    // if not a shortcut c = -1;
+    public final int c;
 
-    public Edge(int v, int w, double weight, boolean shortcut) {
+    public Edge(int v, int w, double weight, int c) {
         if (Double.isNaN(weight)) throw new IllegalArgumentException("Weight is NaN");
         this.v = v;
         this.w = w;
         this.weight = weight;
-        this.shortcut = shortcut;
+        this.c = c;
     }
 
     public double weight() {
@@ -36,8 +38,7 @@ public class Edge implements Comparable<Edge> {
     }
 
     public String toString() {
-        String sc = (shortcut) ? "s" : "n";
-        return String.format("%d-%d %.5f %s", v, w, weight, sc);
+        return String.format("%d-%d %.5f %s", v, w, weight, c);
     }
 
     public int V(){

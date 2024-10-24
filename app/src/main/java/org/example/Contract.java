@@ -24,7 +24,6 @@ public class Contract {
         contractVertices();
     }
 
-
     // find the edge difference for a vertex 
     public int findEdgeDifference(int u){
         int shortcuts = 0;
@@ -59,8 +58,9 @@ public class Contract {
     public Edge getShortCut(int v, int u, int w, ArrayList<Edge> edges){
         double direct = findDirect(v, u, w, edges);
         double sp = d.runDijkstra(g, g.getVertexId(v), g.getVertexId(w));
+        d.clear();
         if(sp == direct)
-            return new Edge(v, w, sp, true);
+            return new Edge(v, w, sp, u);
         else 
             return null;
     }
@@ -68,8 +68,8 @@ public class Contract {
     // helper method for findEdgeDifference 
     // find the direct distance between two vertices in u's neigbourhood going over u
     public double findDirect(int v, int u, int w, ArrayList<Edge> edges){
-        Edge first = new Edge(0, 0, 0, false);
-        Edge second = new Edge(0, 0, 0, false);
+        Edge first = new Edge(0, 0, 0, -1);
+        Edge second = new Edge(0, 0, 0, -1);
         for(Edge e : edges){
             if(e.other(v) == u)
                 first = e;
@@ -104,13 +104,18 @@ public class Contract {
 
         Contract c = new Contract(g);
         ArrayList<Edge> edges = (ArrayList) g.adj(7);
-        System.out.println(g.adj(7));
-        System.out.println(g.getVertexId(1) + "-" + g.getVertexId(7) + "-" +g.getVertexId(9));
-        System.out.println(c.findDirect(1, 7, 9, edges));
-        System.out.println(c.findEdgeDifference(7));
-
-        for (int i = 0; i < g.V(); i++) {
-            System.out.println(c.pq.keyOf(i));
+        // System.out.println(g.adj(7));
+        // System.out.println(g.getVertexId(1) + "-" + g.getVertexId(7) + "-" +g.getVertexId(9));
+        // System.out.println(c.findDirect(1, 7, 9, edges));
+        // System.out.println(c.findEdgeDifference(7));
+        Iterable<Edge> e = g.edges();
+        for (Edge edge : e) {
+            System.out.println(edge.toString());
         }
+        System.out.println(g.toString());
+
+        // for (int i = 0; i < g.V(); i++) {
+        //     System.out.println(c.pq.keyOf(i));
+        // }
     }
 }

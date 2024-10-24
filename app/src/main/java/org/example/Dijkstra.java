@@ -56,8 +56,6 @@
 **==--------=-=-=====++*+*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@%%##****++++*+++
 ##*+=-------===+++===++**@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@%%##*******#*#
  */
-
-
 package org.example;
 
 import java.util.Stack;
@@ -66,7 +64,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 
 public class Dijkstra{
-    private double [] distTo;          // distTo[v] = distance  of shortest s->v path
+    private double [] distTo;         // distTo[v] = distance  of shortest s->v path
     private Edge[] edgeTo;            // edgeTo[v] = last Edg on shortest s->v path
     private IndexMinPQ<Double> pq;    // priority queue of vertices
     // private HashMap<Long, Integer> index;

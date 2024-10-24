@@ -52,7 +52,7 @@ public class Graph {
             int v = vertexIdToIndexMap.get(vId);
             int w = vertexIdToIndexMap.get(wId);
 
-            Edge e = new Edge(v, w, weight, false );
+            Edge e = new Edge(v, w, weight, -1);
             addEdge(e);
         }
         sc.close();

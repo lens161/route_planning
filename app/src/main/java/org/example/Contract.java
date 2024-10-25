@@ -3,6 +3,9 @@ package org.example;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Set;
+import java.util.HashSet;
 
 import edu.princeton.cs.algs4.IndexMinPQ;
 
@@ -10,17 +13,24 @@ public class Contract {
     private Graph g;
     private Dijkstra d;
     public IndexMinPQ<Integer> pq;
+    public boolean[] stale;
+    // Set to track added shortcuts and prevent duplicates
+    public Set<String> shortcuts;
+    public int[] ranks;
 
     public Contract(Graph g) throws FileNotFoundException{
         this.g = g;
+        int size = g.V();
         d = new Dijkstra();
-        pq = new IndexMinPQ<>(g.V());
-
+        pq = new IndexMinPQ<>(size);
+        stale = new boolean[size];
+        Arrays.fill(stale, false);
+        shortcuts = new HashSet<>();
+        ranks = new int[size];
         // insert all vertices in the priority queue based on their edge difference
-        for (int i = 0; i < g.V(); i++) {
+        for (int i = 0; i < size; i++) {
             pq.insert(i, findEdgeDifference(i));
         }
-
         contractVertices();
     }
 
@@ -79,24 +89,48 @@ public class Contract {
         return first.weight() + second.weight();
     }
     
+    // contracts all vertices in the priority queue 
     public void contractVertices(){
-        while(!pq.isEmpty()){
+        int contracted = 0;
+        int size = g.V();
+        while(!pq.isEmpty() && contracted < size){
             int u = pq.delMin();
-            ArrayList<Edge> edges = (ArrayList) g.adj(u);
-            int[] v = getNeighbours(u, edges);
+            // if the vertex is on the stale list, update its priority and add back to queue
+            if (stale[u] == true) {
+                pq.insert(u, findEdgeDifference(u));
+                System.out.println(u);
+            }
+            else
+                contract(u);
+            contracted++;
+        }
+    }
 
-            // TO-DO:
-            // this has the same problem as the nested for loops in findEdgeDifference. also this is becoming some boilerplate bullshit.
-            // please solve the redundancy problem and refactor somehow.
-            for (int i = 0; i < v.length; i++) {
-                for (int j = 0; j < v.length; j++) {
-                    Edge shortcut = getShortCut(v[i], u, v[j], edges);
-                    if(i!=j && shortcut != null)
-                        g.addEdge(shortcut);
+    // contracts a vertex
+    private void contract(int u) {
+        ArrayList<Edge> edges = (ArrayList) g.adj(u);
+        int[] v = getNeighbours(u, edges);
+        // TO-DO:
+        // this has the same problem as the nested for loops in findEdgeDifference. also this is becoming some boilerplate bullshit.
+        // please solve the redundancy problem and refactor somehow.
+        for (int i = 0; i < v.length; i++) {
+            for (int j = 0; j < v.length; j++) {
+                int V = Integer.min(v[i], v[j]);
+                int W = Integer.max(v[i], v[j]);
+                Edge shortcut = getShortCut(V, u, W, edges);
+                String shortcutString = Integer.toString(V) + "" + Integer.toString(W);
+                if(shortcuts.contains(shortcutString))
+                    continue;
+                else if (i!=j && shortcut != null){
+                    shortcuts.add(shortcutString);
+                    g.addEdge(shortcut);
+                    //set neighbours of u to stale for lazy updates
+                    stale[v[i]] = true;
+                    stale[v[j]] = true;
                 }
             }
         }
-    } 
+    }
 
     public static void main(String[] args) throws FileNotFoundException {
         File input1 = new File("/Users/lennart/Documents/00_ITU/03_Sem03/02_Applied_Algorithms/Assignment3/route-planning/SmallTest.graph");

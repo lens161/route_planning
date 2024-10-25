@@ -2,33 +2,57 @@ import random
 import os
 import subprocess
 
-TIMEOUT = 30
-
-def read_edges_from_graph(graph_path):
+def read_graph(graph_path):
+    vertices = []
+    vertices_plus = []  # vertices with longitude and latitude
     edges = []
     with open(graph_path, "r") as file:
         lines = file.readlines()
-        # Skip the vertex lines (first 569586 lines)
-        edge_lines = lines[569587:]
+        counts = lines[0].split()
+        n_vertices = int(counts[0]) 
+        n_edges = int(counts[1])
+
+        vertex_lines = lines[1:n_vertices]
+        print(vertex_lines[0])
+
+        for line in vertex_lines:
+            tokens = line.split()
+            if len(tokens) == 3:
+                v = int(tokens[0])
+                latitude = int(float(tokens[1]))
+                longitude = int(float(tokens[2]))
+                vertices.append(v)
+                vertices_plus.append((v, latitude, longitude))
+
+        edge_lines = lines[n_vertices+1:]
+        print(edge_lines[0])
+
         for line in edge_lines:
             if line.strip():
                 tokens = line.split()
-                if len(tokens) == 3:  # Assuming edge lines contain 3 tokens: s, t, weight
-                    s = int(tokens[0])
-                    t = int(tokens[1])
-                    edges.append((s, t))
-    return edges
+                if len(tokens) == 3:
+                    v = int(tokens[0])
+                    w = int(tokens[1])
+                    weight = int(tokens[2])
+                    edges.append((v, w, weight))
+
+    return vertices, vertices_plus, edges
 
 
-def generate_random_pairs(edges, seed, n_pairs=1000):
+vertices, vertices_plus, edges = read_graph("denmark.graph")
+
+def generate_random_pairs(vertex_list, seed, n_pairs=1000):
     random.seed(seed)
-    pairs = random.sample(edges, n_pairs)
+    random.shuffle(vertex_list)
+    pairs = []
+    for i in range(n_pairs):
+        pairs.append((vertex_list[i], vertex_list[i+1]))
     return pairs
 
 def save_pairs_to_file(pairs, output_path):
     with open(output_path, "w") as file:
-        for s, t in pairs:
-            file.write(f"{s} {t}\n")
+        for v, w in pairs:
+            file.write(f"{v} {w}\n")
 
 def run_java(jar: str, arg: str, input: str) -> str:
     p = subprocess.Popen(['java', '-jar', jar, arg], 
@@ -51,16 +75,16 @@ def benchmark():
     return estimate
 
 if __name__ == "__main__":
-    graph_file_path = os.path.join("denmark.graph")
+    graph_file_path = os.path.join("denmark_new.graph")
     output_pairs_path = os.path.join("random_pairs.txt")
 
-    edges = read_edges_from_graph(graph_file_path)
+    edges = read_graph(graph_file_path)
     if not edges:
         print("No edges found in the graph file.")
     else:
         # Generate random pairs using a fixed seed
         seed = 42
-        random_pairs = generate_random_pairs(edges, seed, n_pairs=1000)
+        random_pairs = generate_random_pairs(vertices, seed, n_pairs=1000)
         
         # Save the pairs to a file
         save_pairs_to_file(random_pairs, output_pairs_path)

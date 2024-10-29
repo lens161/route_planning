@@ -2,6 +2,11 @@ import random
 import os
 import subprocess
 
+TIMEOUT = 150
+SEED = 42
+
+argument = input("contract or benchmark - c(contract), b(benchmark all), di(bench. djik.), bi(bench. BiDijk), ch(bench. CH): ")
+
 def read_graph(graph_path):
     vertices = []
     vertices_plus = []  # vertices with longitude and latitude
@@ -13,7 +18,7 @@ def read_graph(graph_path):
         n_edges = int(counts[1])
 
         vertex_lines = lines[1:n_vertices]
-        print(vertex_lines[0])
+        edge_lines = lines[n_vertices+1:]
 
         for line in vertex_lines:
             tokens = line.split()
@@ -24,17 +29,14 @@ def read_graph(graph_path):
                 vertices.append(v)
                 vertices_plus.append((v, latitude, longitude))
 
-        edge_lines = lines[n_vertices+1:]
-        print(edge_lines[0])
 
         for line in edge_lines:
-            if line.strip():
-                tokens = line.split()
-                if len(tokens) == 3:
-                    v = int(tokens[0])
-                    w = int(tokens[1])
-                    weight = int(tokens[2])
-                    edges.append((v, w, weight))
+            tokens = line.split()
+            if len(tokens) == 3:
+                v = int(tokens[0])
+                w = int(tokens[1])
+                weight = int(tokens[2])
+                edges.append((v, w, weight))
 
     return vertices, vertices_plus, edges
 
@@ -62,30 +64,46 @@ def run_java(jar: str, arg: str, input: str) -> str:
     (output, _) = p.communicate(input.encode('utf-8'), timeout=TIMEOUT)
     return output.decode('utf-8')
 
-def benchmark():
-    input_size = 1000
+def benchmark(version, random_pairs, graph):
+    # input_size = 1000
+    jar = "" # TO-DO: compile java project and add jar
+    graph = '\n'.join(f"{u} {v}" for u, v in random_pairs)
+    input_data = '\n'.join(f"{u} {v}" for u, v in random_pairs)
+    arg = version
+    # print(input_data)
     
-    input_data = ' '.join(map(str, generate_random_pairs(edges, seed, n_pairs=1000)))
-    # arg = str(reg_count)
+    output = run_java(jar, arg, input_data)
+    print(output)
     
-    # estimate = run_java(jar, arg, input_data)
-    print(estimate)
-    estimate = float(estimate)
-    
-    return estimate
+    return output
 
 if __name__ == "__main__":
     graph_file_path = os.path.join("denmark_new.graph")
     output_pairs_path = os.path.join("random_pairs.txt")
+    random_pairs = generate_random_pairs(vertices, SEED, n_pairs=1000)
+    n_v = len(vertices_plus) 
+    n_e = len(edges) 
+    g_vertices = '\n'.join(f"{v} {la} {lo}" for v, la, lo in vertices_plus)
+    g_edges = '\n'.join(f"{u} {v} {w}" for u, v, w in edges)
 
-    edges = read_graph(graph_file_path)
-    if not edges:
-        print("No edges found in the graph file.")
-    else:
-        # Generate random pairs using a fixed seed
-        seed = 42
-        random_pairs = generate_random_pairs(vertices, seed, n_pairs=1000)
-        
-        # Save the pairs to a file
-        save_pairs_to_file(random_pairs, output_pairs_path)
-        print(f"Generated 1000 random (s, t) pairs and saved to {output_pairs_path}")
+    graph = '\n'.join(f"{n_v} {n_e} {g_vertices} {g_edges}")
+    
+    # if c selected contract the graph
+    if argument == "c":
+        run_java("", "buildgraph", graph)
+    
+    # if b selected run benchmarks on all SP algorithms
+    if argument == "b":
+        dijkstra = benchmark("dijkstra", random_pairs)
+        bi_dijkstra = benchmark("BiDijkstra", random_pairs)
+        contraction_hirarchies = benchmark("CH", random_pairs)
+    # select single SP algs
+    if argument == "di":
+        dijkstra = benchmark("dijkstra", random_pairs)
+    if argument == "bi":
+        dijkstra = benchmark("BiDijkstra", random_pairs)
+    if argument == "ch":
+        dijkstra = benchmark("CH", random_pairs)
+
+    save_pairs_to_file(random_pairs, output_pairs_path)
+    print(f"Generated 1000 random pairs and saved to {output_pairs_path}")

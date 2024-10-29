@@ -7,7 +7,8 @@ import java.nio.file.Files;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-public class routePlanner {
+public class RoutePlanner {
+
 
     public static void main(String[] args) throws IOException {
         // File input1 = new File("/home/knor/route/route-planning/app/src/main/resources/SmallTest.txt");

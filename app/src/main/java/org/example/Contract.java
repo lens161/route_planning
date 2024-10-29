@@ -2,6 +2,8 @@ package org.example;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Set;
@@ -11,14 +13,14 @@ import edu.princeton.cs.algs4.IndexMinPQ;
 
 public class Contract {
     private Graph g;
-    private Dijkstra d;
+    public static Dijkstra d;
     public IndexMinPQ<Integer> pq;
     public boolean[] stale;
     // Set to track added shortcuts and prevent duplicates
     public Set<String> shortcuts;
     public int[] ranks;
 
-    public Contract(Graph g) throws FileNotFoundException{
+    public Contract(Graph g){
         this.g = g;
         int size = g.V();
         d = new Dijkstra();
@@ -29,15 +31,18 @@ public class Contract {
         ranks = new int[size];
         // insert all vertices in the priority queue based on their edge difference
         for (int i = 0; i < size; i++) {
+            System.out.println(i);
             pq.insert(i, findEdgeDifference(i));
         }
         contractVertices();
     }
 
     // find the edge difference for a vertex 
-    public int findEdgeDifference(int u){
+    private int findEdgeDifference(int u){
         int shortcuts = 0;
+        @SuppressWarnings({ "rawtypes", "unchecked" })
         ArrayList<Edge> edges = (ArrayList) g.adj(u);
+        // System.out.println(edges.size());
         int degree = edges.size();
         // array of all vertices 
         int[] v = getNeighbours(u, edges);
@@ -51,7 +56,9 @@ public class Contract {
                 if(i!=j && getShortCut(v[i], u, v[j], edges) != null) 
                     shortcuts ++;
         // System.out.println(shortcuts/2);
-        return shortcuts/2 - degree;
+        int ed = shortcuts/2 - degree;
+        // System.out.println(u + ": " + ed);
+        return ed;
     }
 
 
@@ -65,7 +72,7 @@ public class Contract {
     }
 
     // get the shortcut from v-w over u if there is any. return null if there is no shortcut
-    public Edge getShortCut(int v, int u, int w, ArrayList<Edge> edges){
+    private Edge getShortCut(int v, int u, int w, ArrayList<Edge> edges){
         double direct = findDirect(v, u, w, edges);
         double sp = d.runDijkstra(g, g.getVertexId(v), g.getVertexId(w));
         d.clear();
@@ -98,16 +105,19 @@ public class Contract {
             // if the vertex is on the stale list, update its priority and add back to queue
             if (stale[u] == true) {
                 pq.insert(u, findEdgeDifference(u));
-                System.out.println(u);
+                // System.out.println(u);
             }
-            else
+            else{
+                System.out.println("u");
                 contract(u);
+            }
             contracted++;
         }
     }
 
     // contracts a vertex
     private void contract(int u) {
+        @SuppressWarnings({ "rawtypes", "unchecked" })
         ArrayList<Edge> edges = (ArrayList) g.adj(u);
         int[] v = getNeighbours(u, edges);
         // TO-DO:
@@ -132,12 +142,37 @@ public class Contract {
         }
     }
 
+    public Graph saveGraph(){
+        // return g;
+        File contracted;
+        try {
+            contracted = new File("/Users/lennart/Documents/00_ITU/03_Sem03/02_Applied_Algorithms/Assignment3/route-planning/contracted.graph");
+            if(contracted.createNewFile())
+                System.out.println(contracted.getName() + " was created");
+            else 
+                System.out.println(contracted.getName() + "alredy exists");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            FileWriter writer = new FileWriter("/Users/lennart/Documents/00_ITU/03_Sem03/02_Applied_Algorithms/Assignment3/route-planning/contracted.graph");
+            writer.write(g.toString());
+            writer.close();
+        } catch (IOException e) {
+            System.out.println("writing contracted graph file failed");
+            e.printStackTrace();
+        }
+
+        return g;
+    }
+
     public static void main(String[] args) throws FileNotFoundException {
         File input1 = new File("/Users/lennart/Documents/00_ITU/03_Sem03/02_Applied_Algorithms/Assignment3/route-planning/SmallTest.graph");
         Graph g = new Graph(input1);
 
+        System.out.println("started");
         Contract c = new Contract(g);
-        ArrayList<Edge> edges = (ArrayList) g.adj(7);
         // System.out.println(g.adj(7));
         // System.out.println(g.getVertexId(1) + "-" + g.getVertexId(7) + "-" +g.getVertexId(9));
         // System.out.println(c.findDirect(1, 7, 9, edges));
@@ -146,8 +181,9 @@ public class Contract {
         for (Edge edge : e) {
             System.out.println(edge.toString());
         }
-        System.out.println(g.toString());
+        // System.out.println(g.toString());
 
+        System.out.println("shortcuts: " + c.shortcuts.size());
         // for (int i = 0; i < g.V(); i++) {
         //     System.out.println(c.pq.keyOf(i));
         // }

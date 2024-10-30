@@ -1,5 +1,6 @@
 package org.example;
 
+
 import java.util.*;
 
 public class Dijkstra2 {
@@ -8,21 +9,26 @@ public class Dijkstra2 {
     private PriorityQueue<Node> pq;         // priority queue of nodes
     private Map<Integer, Integer> hopCounts; // Hop count from start for each vertex
     private Set<Integer> settled;           // Settled vertices to prevent revisiting
+    private Set<Integer> inQueue;           // Nodes currently in the queue
+    private int[] rank;                     // Node ranks for contraction hierarchy
 
     public Dijkstra2() {
-        // No need to initialize with size V
         distTo = new HashMap<>();
         edgeTo = new HashMap<>();
         hopCounts = new HashMap<>();
         settled = new HashSet<>();
+        inQueue = new HashSet<>();
     }
 
     public double runDijkstra2(Graph g, int s, int t, double maxDistance, int maxHops, int[] nodeRanks) {
+        this.rank = nodeRanks; // Store the rank array for stall-on-demand
+
         // Clear data structures for a fresh run
         distTo.clear();
         edgeTo.clear();
         hopCounts.clear();
         settled.clear();
+        inQueue.clear();
 
         distTo.put(s, 0.0);
         hopCounts.put(s, 0);
@@ -30,14 +36,16 @@ public class Dijkstra2 {
         // Initialize the priority queue with the starting node
         pq = new PriorityQueue<>();
         pq.add(new Node(s, 0.0));
+        inQueue.add(s);
 
         int settledNodes = 0;
-        int maxSettledNodes = 1000; // Limit the number of nodes to settle
+        int maxSettledNodes = 100; // Reduced to limit search space
 
         // Main loop
         while (!pq.isEmpty() && settledNodes < maxSettledNodes) {
             Node currentNode = pq.poll();
             int v = currentNode.id;
+            inQueue.remove(v);
 
             if (settled.contains(v)) continue; // Skip if already processed
             settled.add(v);
@@ -55,9 +63,20 @@ public class Dijkstra2 {
                 continue;
             }
 
+            // Stall-on-demand: skip nodes that can be reached via higher-ranked nodes
+            boolean stalled = false;
+            for (Edge e : g.adj(v)) {
+                int u = e.other(v);
+                if (rank[u] > rank[v] && distTo.containsKey(u) && distTo.get(u) + e.weight() < currentDist) {
+                    stalled = true;
+                    break;
+                }
+            }
+            if (stalled) continue;
+
             // Relax edges from v
             for (Edge e : g.adj(v)) {
-                relax(e, v, nodeRanks);
+                relax(e, v);
             }
         }
 
@@ -66,11 +85,11 @@ public class Dijkstra2 {
     }
 
     // Relax edge e and update pq if needed
-    private void relax(Edge e, int v, int[] nodeRanks) {
+    private void relax(Edge e, int v) {
         int w = e.other(v);
 
         // Skip nodes with higher contraction levels
-        if (nodeRanks[w] > nodeRanks[v]) {
+        if (rank[w] > rank[v]) {
             return;
         }
 
@@ -84,9 +103,11 @@ public class Dijkstra2 {
             edgeTo.put(w, e);
             hopCounts.put(w, newHopCount);
 
-            // Add new entry to priority queue
-            pq.add(new Node(w, newDist));
-            // Note: We might have multiple entries for the same node, but we check settled nodes before processing
+            if (!inQueue.contains(w)) {
+                // Add new entry to priority queue
+                pq.add(new Node(w, newDist));
+                inQueue.add(w);
+            }
         }
     }
 

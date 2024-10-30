@@ -1,5 +1,6 @@
 package org.example;
 
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -9,20 +10,43 @@ public class ContractionHierarchy {
     private final Graph graph;
     private final int[] rank;
     private int contractionOrder;
-    private PriorityQueue<Integer> contractionQueue;
-    private Dijkstra2 dijkstra; // Reuse the Dijkstra2 instance
+    private TreeSet<Node> contractionQueue;
+    private Map<Integer, Node> nodeReferences;
+    private ThreadLocal<Dijkstra2> threadLocalDijkstra = ThreadLocal.withInitial(Dijkstra2::new);
+    private long totalContractNodeTime = 0;
+    private int contractedNodeCount = 0;
 
     public ContractionHierarchy(Graph graph) {
         this.graph = graph;
         this.rank = new int[graph.V()];
         Arrays.fill(rank, -1);
         this.contractionOrder = 0;
-        this.dijkstra = new Dijkstra2(); // No need to pass V
+        // this.threadLocalDijkstra = new Dijkstra2();
+    }
+
+    // Node class for priority queue
+    private class Node implements Comparable<Node> {
+        int index;
+        int importance;
+
+        public Node(int index, int importance) {
+            this.index = index;
+            this.importance = importance;
+        }
+
+        @Override
+        public int compareTo(Node other) {
+            if (this.importance != other.importance) {
+                return Integer.compare(this.importance, other.importance);
+            } else {
+                return Integer.compare(this.index, other.index);
+            }
+        }
     }
 
     /**
      * Calculates the importance score of a node.
-     * Now includes various heuristics as per the Geisberger paper.
+     * Includes various heuristics as per the Geisberger paper.
      */
     private int calculateNodeImportance(int v) {
         int edgeDifference = computeEdgeDifference(v);
@@ -86,9 +110,14 @@ public class ContractionHierarchy {
     }
 
     private void initializeContractionQueue() {
-        contractionQueue = new PriorityQueue<>(Comparator.comparingInt(v -> calculateNodeImportance(v)));
+        contractionQueue = new TreeSet<>();
+        nodeReferences = new HashMap<>();
+
         for (int i = 0; i < graph.V(); i++) {
-            contractionQueue.add(i);
+            int importance = calculateNodeImportance(i);
+            Node node = new Node(i, importance);
+            contractionQueue.add(node);
+            nodeReferences.put(i, node);
         }
     }
 
@@ -96,17 +125,19 @@ public class ContractionHierarchy {
         initializeContractionQueue();
 
         int processedNodes = 0;
+        long startTime = System.nanoTime(); 
 
         while (!contractionQueue.isEmpty()) {
-            int v = contractionQueue.poll();
+            Node node = contractionQueue.pollFirst();
+            int v = node.index;
 
-            // Recalculate importance if necessary
-            int oldImportance = calculateNodeImportance(v);
+            // Recalculate importance
             int newImportance = calculateNodeImportance(v);
-
-            if (newImportance > oldImportance) {
+            if (newImportance > node.importance) {
                 // Reinsert with updated importance
-                contractionQueue.add(v);
+                Node newNode = new Node(v, newImportance);
+                contractionQueue.add(newNode);
+                nodeReferences.put(v, newNode);
                 continue;
             }
 
@@ -119,28 +150,46 @@ public class ContractionHierarchy {
             // Print progress every 10,000 nodes
             if (contractionOrder % 10000 == 0) {
                 System.out.println("Contracted " + contractionOrder + " nodes out of " + graph.V());
+
+                // Calculate elapsed time
+                long elapsedTime = System.nanoTime() - startTime;
+                double elapsedSeconds = elapsedTime / 1e9;
+                System.out.printf("Elapsed time: %.2f seconds%n", elapsedSeconds);
+
+                // Calculate average contraction time per node
+                double averageTime = (totalContractNodeTime / 1e9) / contractedNodeCount;
+                System.out.printf("Average contraction time per node: %.6f seconds%n", averageTime);
             }
         }
+
+        // Total time taken
+        long totalTime = System.nanoTime() - startTime;
+        double totalSeconds = totalTime / 1e9;
+        System.out.printf("Total contraction time: %.2f seconds%n", totalSeconds);
     }
 
     private void updateContractionQueue(int contractedNode) {
-        Set<Integer> affectedNodes = new HashSet<>();
-        // Affected nodes are neighbors of the contracted node
         for (Edge e : graph.adj[contractedNode].values()) {
             int w = e.other(contractedNode);
             if (rank[w] == -1) { // Only if not already contracted
-                affectedNodes.add(w);
-            }
-        }
+                // Recalculates importance
+                int newImportance = calculateNodeImportance(w);
 
-        // Recalculate importance and update queue
-        for (int v : affectedNodes) {
-            contractionQueue.remove(v); // Remove outdated entry
-            contractionQueue.add(v);    // Re-add with updated importance
+                // Removes the old node from the queue
+                Node oldNode = nodeReferences.get(w);
+                contractionQueue.remove(oldNode);
+
+                // Creates a new node with updated importance and add it to the queue
+                Node newNode = new Node(w, newImportance);
+                contractionQueue.add(newNode);
+                nodeReferences.put(w, newNode);
+            }
         }
     }
 
     private void contractNode(int v) {
+        long startTime = System.nanoTime();
+
         rank[v] = contractionOrder++;
         Map<Integer, Edge> neighbors = graph.adj[v];
 
@@ -152,47 +201,58 @@ public class ContractionHierarchy {
             }
         }
 
-        // For performance, avoid nested loops over all neighbor pairs
+        // Collect neighbor pairs to process
+        List<int[]> neighborPairs = new ArrayList<>();
         for (int i = 0; i < neighborIndices.size(); i++) {
             int u = neighborIndices.get(i);
-            Edge edgeUV = neighbors.get(u);
-
             for (int j = i + 1; j < neighborIndices.size(); j++) {
                 int w = neighborIndices.get(j);
-                Edge edgeVW = neighbors.get(w);
-
                 if (!graph.edgeExists(u, w)) {
-                    double shortcutWeight = edgeUV.weight() + edgeVW.weight();
-
-                    // Limit witness search to a small number of hops
-                    boolean hasWitness = witnessSearch(u, w, shortcutWeight, 3);
-
-                    if (!hasWitness) {
-                        Edge shortcut = new Edge(u, w, shortcutWeight, v);
-                        graph.addEdge(shortcut);
-                    }
+                    neighborPairs.add(new int[]{u, w});
                 }
             }
         }
+
+        // Process neighbor pairs in parallel
+        neighborPairs.parallelStream().forEach(pair -> {
+            int u = pair[0];
+            int w = pair[1];
+            double shortcutWeight = neighbors.get(u).weight() + neighbors.get(w).weight();
+
+            // Limit witness search to a small number of hops
+            boolean hasWitness = witnessSearch(u, w, shortcutWeight, 10);
+
+            if (!hasWitness) {
+                Edge shortcut = new Edge(u, w, shortcutWeight, v);
+                synchronized (graph) {
+                    graph.addEdge(shortcut);
+                }
+            }
+        });
+
+        long endTime = System.nanoTime();
+        totalContractNodeTime += (endTime - startTime);
+        contractedNodeCount++;
     }
 
     /**
      * Performs a witness search from node u to node w within a limited distance and hops.
      *
-     * @param uIndex - the index of the starting node
-     * @param wIndex - the index of the target node
+     * @param uIndex     - the index of the starting node
+     * @param wIndex     - the index of the target node
      * @param maxDistance - maximum allowable distance for a shortcut
-     * @param maxHops - maximum number of hops to consider
+     * @param maxHops    - maximum number of hops to consider
      * @return true if a path exists within maxDistance and maxHops; otherwise, false
      */
     private boolean witnessSearch(int uIndex, int wIndex, double maxDistance, int maxHops) {
+        Dijkstra2 dijkstra = threadLocalDijkstra.get();
         double distance = dijkstra.runDijkstra2(
-            graph,
-            uIndex,
-            wIndex,
-            maxDistance,
-            maxHops,
-            rank // Pass the nodeRanks array
+                graph,
+                uIndex,
+                wIndex,
+                maxDistance,
+                maxHops,
+                rank // Pass the nodeRanks array
         );
         return distance <= maxDistance;
     }
@@ -229,11 +289,12 @@ public class ContractionHierarchy {
     }
 
     public static void main(String[] args) throws IOException {
-        Graph graph2 = new Graph(new File("/home/knor/route/newdenmark.graph"));
+        // Replace with your graph file path
+        Graph graph = new Graph(new File("/home/knor/route/newdenmark.graph"));
 
-        ContractionHierarchy ch = new ContractionHierarchy(graph2);
+        ContractionHierarchy ch = new ContractionHierarchy(graph);
 
         ch.preprocess();
-        ch.saveAugmentedGraph("test");
+        ch.saveAugmentedGraph("augmented_graph_output.graph");
     }
 }

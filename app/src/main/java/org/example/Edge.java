@@ -1,9 +1,10 @@
 package org.example;
 
-public class Edge implements Comparable<Edge> { 
 
-    private final int v; 
-    private final int w; 
+public class Edge implements Comparable<Edge> {
+
+    private final int v;
+    private final int w;
     private final double weight;
     // The vertex the shortcut has been contracted from
     // If not a shortcut, c = -1

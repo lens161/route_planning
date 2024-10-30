@@ -3,6 +3,7 @@ package org.example;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class Graph {
     private final int V;
@@ -22,9 +23,9 @@ public class Graph {
         this.V = V;
         this.E = 0;
 
-        adj = (Map<Integer, Edge>[]) new HashMap[V];
+        adj = (Map<Integer, Edge>[]) new ConcurrentHashMap[V];
         for (int i = 0; i < V; i++) {
-            adj[i] = new HashMap<>();
+            adj[i] = new ConcurrentHashMap<>();
         }
 
         vertexIdToIndexMap = new HashMap<>();

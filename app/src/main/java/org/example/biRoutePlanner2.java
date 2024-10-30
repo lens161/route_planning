@@ -10,17 +10,17 @@ import java.io.PrintWriter;
 public class biRoutePlanner2 {
 
     public static void main(String[] args) throws IOException {
-        File graphFile = new File("/home/knor/route/route-planning/app/src/main/resources/denmark.graph");
+        File graphFile = new File("/home/knor/route/testchgraph.graph");
         Graph g = new Graph(graphFile);
 
-        File randomPairsFile = new File("/home/knor/route/route-planning/app/src/main/resources/random_pairs.txt");
+        File randomPairsFile = new File("/home/knor/route/route-planning/random_pairs_anders.txt");
         if (!randomPairsFile.exists()) {
             System.err.println("The random pairs file does not exist.");
             return;
         }
 
         BiDirectionalDijkstra biDijkstra = new BiDirectionalDijkstra();
-        File outputFile = new File("/home/knor/route/route-planning/app/src/main/resources/bidirectional_dijkstra_results.csv");
+        File outputFile = new File("/home/knor/route/route-planning/app/src/main/resources/ch_bidirectional_dijkstra_results2.csv");
 
         try (PrintWriter writer = new PrintWriter(outputFile)) {
             writer.println("Source,Target,Distance,ExecutionTime");

@@ -47,4 +47,8 @@ public class Edge implements Comparable<Edge> {
     public int W() {
         return w;
     }
+
+    public boolean isShortcut() {
+        return c != -1;
+    }
 }

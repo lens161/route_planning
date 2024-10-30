@@ -103,17 +103,17 @@ public class Graph {
     public Iterable<Edge> edges() {
         LinkedList<Edge> list = new LinkedList<>();
         for (int v = 0; v < adj.length; v++) {
-            int selfLoops = 0;
             for (Edge e : adj[v].values()) {
                 int w = e.other(v);
-                if (w > v) {
+                if (v < w) { // Ensure each edge is only added once
                     list.add(e);
-                } else if (w == v) {
-                    if (selfLoops % 2 == 0) list.add(e);
-                    selfLoops++;
                 }
             }
         }
         return list;
+    }
+
+    public boolean edgeExists(int u, int w) {
+        return adj[u].containsKey(w);
     }
 }

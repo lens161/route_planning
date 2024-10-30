@@ -2,10 +2,14 @@ package org.example;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.HashSet;
+import java.io.FileWriter;
+import java.io.IOException;
 
 import edu.princeton.cs.algs4.IndexMinPQ;
 
@@ -132,24 +136,59 @@ public class Contract {
         }
     }
 
-    public static void main(String[] args) throws FileNotFoundException {
-        File input1 = new File("/Users/lennart/Documents/00_ITU/03_Sem03/02_Applied_Algorithms/Assignment3/route-planning/SmallTest.graph");
-        Graph g = new Graph(input1);
 
-        Contract c = new Contract(g);
-        ArrayList<Edge> edges = (ArrayList) g.adj(7);
-        // System.out.println(g.adj(7));
-        // System.out.println(g.getVertexId(1) + "-" + g.getVertexId(7) + "-" +g.getVertexId(9));
-        // System.out.println(c.findDirect(1, 7, 9, edges));
-        // System.out.println(c.findEdgeDifference(7));
-        Iterable<Edge> e = g.edges();
-        for (Edge edge : e) {
-            System.out.println(edge.toString());
+public void writeToFile(String filePath) throws IOException {
+    try (FileWriter writer = new FileWriter(filePath)) {
+        // Write header or any metadata required for the .graph format
+        writer.write("Vertices: " + g.V() + "\n");
+        writer.write("Edges: " + g.E() + "\n");
+
+        // Iterate through all edges in the graph
+        for (Edge edge : g.edges()) {
+            int v = edge.either();
+            int w = edge.other(v);
+            double weight = edge.weight();
+            // Adjust the format to match .graph file expectations
+            writer.write(v + " " + w + " " + weight + "\n");
         }
-        System.out.println(g.toString());
-
-        // for (int i = 0; i < g.V(); i++) {
-        //     System.out.println(c.pq.keyOf(i));
-        // }
+    } catch (IOException e) {
+        System.err.println("Error writing to file: " + e.getMessage());
+        throw e;
     }
+}
+
+//     public static void main(String[] args) throws FileNotFoundException {
+//         File input1 = new File("/home/knor/route/route-planning/denmark.graph");
+//         Graph g = new Graph(input1);
+
+//         Contract c = new Contract(g);
+//         ArrayList<Edge> edges = (ArrayList) g.adj(7);
+//         // System.out.println(g.adj(7));
+//         // System.out.println(g.getVertexId(1) + "-" + g.getVertexId(7) + "-" +g.getVertexId(9));
+//         // System.out.println(c.findDirect(1, 7, 9, edges));
+//         // System.out.println(c.findEdgeDifference(7));
+//         Iterable<Edge> e = g.edges();
+//         for (Edge edge : e) {
+//             System.out.println(edge.toString());
+//         }
+//         // System.out.println(g.toString());
+
+//         // for (int i = 0; i < g.V(); i++) {
+//         //     System.out.println(c.pq.keyOf(i));
+//         // }
+//     }
+// }
+public static void main(String[] args) throws FileNotFoundException, IOException {
+    File input1 = new File("/home/knor/route/route-planning/SmallTest.graph");
+    Graph g = new Graph(input1);
+
+    Contract c = new Contract(g);
+    c.contractVertices();
+
+    // Specify the output file path
+    String outputFilePath = "/home/knor/route/route-planning/contracted_output.graph";
+    c.writeToFile(outputFilePath);
+
+    System.out.println("Contracted graph saved to " + outputFilePath);
+}
 }

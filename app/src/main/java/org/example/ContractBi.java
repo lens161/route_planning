@@ -3,7 +3,6 @@ package org.example;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.sql.Time;
 import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -12,20 +11,20 @@ import java.util.HashSet;
 
 import edu.princeton.cs.algs4.IndexMinPQ;
 
-public class Contract {
+public class ContractBi {
     private Graph g;
     private int HOP_LIMIT = 10;
-    public static Dijkstra d;
+    public static BiDirectionalDijkstra d;
     private IndexMinPQ<Integer> pq;
     private boolean[] stale;
     // Set to track added shortcuts and prevent duplicates
-    private Set<String> shortcuts;
+    public Set<String> shortcuts;
     private int[] ranks;
 
-    public Contract(Graph g){
+    public ContractBi(Graph g){
         this.g = g;
         int size = g.V();
-        d = new Dijkstra();
+        d = new BiDirectionalDijkstra();
         pq = new IndexMinPQ<>(size);
         stale = new boolean[size];
         Arrays.fill(stale, false);
@@ -33,7 +32,7 @@ public class Contract {
         ranks = new int[size];
         // insert all vertices in the priority queue based on their edge difference
         for (int i = 0; i < size; i++) {
-            System.out.println("adding:" + i);
+            // System.out.println(i);
             pq.insert(i, findEdgeDifference(i));
         }
         contractVertices();
@@ -58,6 +57,8 @@ public class Contract {
                 if(i!=j && getShortCut(v[i], u, v[j], edges) != null) 
                     shortcuts ++;
         // System.out.println(shortcuts/2);
+        System.out.println(u + ": " +  degree);
+        System.out.println("sortcuts " + u + ": " + shortcuts);
         int ed = shortcuts/2 - degree;
         // System.out.println(u + ": " + ed);
         return ed;
@@ -76,13 +77,10 @@ public class Contract {
     // get the shortcut from v-w over u if there is any. return null if there is no shortcut
     private Edge getShortCut(int v, int u, int w, ArrayList<Edge> edges){
         double direct = findDirect(v, u, w, edges);
-        long start = System.nanoTime();
-        double sp = d.runDijkstraLim(g, g.getVertexId(v), g.getVertexId(w), direct, HOP_LIMIT);
-        long finish = System.nanoTime();
-        System.out.println("Dijkstra took: " + "\t" + ((finish-start)));
+        double sp = d.runBiDirectionalDijkstraLim(g, g.getVertexId(v), g.getVertexId(w), direct, HOP_LIMIT);
         d.clear();
         if(sp == direct || sp == -1)
-            return new Edge(v, w, direct, u);
+            return new Edge(v, w, sp, u);
         else 
             return null;
     }
@@ -113,7 +111,7 @@ public class Contract {
                 // System.out.println(u);
             }
             else{
-                // System.out.println("u");
+                System.out.println("u");
                 contract(u);
             }
             contracted++;
@@ -173,11 +171,11 @@ public class Contract {
     }
 
     public static void main(String[] args) throws FileNotFoundException {
-        File input1 = new File("/Users/lennart/Documents/00_ITU/03_Sem03/02_Applied_Algorithms/Assignment3/route-planning/denmark_newnew.graph");
+        File input1 = new File("/Users/lennart/Documents/00_ITU/03_Sem03/02_Applied_Algorithms/Assignment3/route-planning/denmark_new.graph");
         Graph g = new Graph(input1);
 
         System.out.println("started");
-        Contract c = new Contract(g);
+        ContractBi c = new ContractBi(g);
         // System.out.println(g.adj(7));
         // System.out.println(g.getVertexId(1) + "-" + g.getVertexId(7) + "-" +g.getVertexId(9));
         // System.out.println(c.findDirect(1, 7, 9, edges));

@@ -58,16 +58,19 @@
  */
 package org.example;
 
-import java.util.Arrays;
+// import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Stack;
 import edu.princeton.cs.algs4.IndexMinPQ;
 import java.io.File;
 import java.io.FileNotFoundException;
 
 public class Dijkstra{
-    private double [] distTo;         // distTo[v] = distance  of shortest s->v path
+    // private double [] distTo;         // distTo[v] = distance  of shortest s->v path
+    private int CUT_OFF = 50;
+    private HashMap<Integer, Double> distTo;
     private Edge[] edgeTo;           // edgeTo[v] = last Edg on shortest s->v path
-    private int[] hopTo;
+    private HashMap<Integer, Integer> hopTo;
     private IndexMinPQ<Double> pq;    // priority queue of vertices
     // private HashMap<Long, Integer> index;
     // private Graph g;
@@ -86,17 +89,19 @@ public class Dijkstra{
         // }
         int VertexCount = g.V();
 
-        distTo = new double[VertexCount];
+        // distTo = new double[VertexCount];
         edgeTo = new Edge[VertexCount];
         
 
-        for (int i = 0; i < g.V(); i++)
-            distTo[i] = Double.POSITIVE_INFINITY;
-        distTo[start] = 0.0;
+        distTo = new HashMap<>();
+        // for (int i = 0; i < g.V(); i++)
+        //     distTo[i] = Double.POSITIVE_INFINITY;
+        // distTo[start] = 0.0;
+        distTo.put(start, 0.0);
 
         // relax vertices in order of distance from s
         pq = new IndexMinPQ<Double>(VertexCount);
-        pq.insert(start, distTo[start]);
+        pq.insert(start, distTo.get(start));
 
         while (!pq.isEmpty()) {
             int v = pq.delMin();
@@ -106,8 +111,7 @@ public class Dijkstra{
                 return distTo(v);
         }
         // check optimality conditions
-        assert check(g, s);
-        return distTo(target);
+        return distTo.get(target);
     }
 
     public double runDijkstraLim(Graph g, long s, long t, double distLimit, int hopLimit) {
@@ -118,33 +122,40 @@ public class Dijkstra{
         //         throw new IllegalArgumentException("Edg " + e + " has negative weight");
         // }
         int VertexCount = g.V();
-
-        distTo = new double[VertexCount];
+        
         edgeTo = new Edge[VertexCount];
-        hopTo = new int[VertexCount];
-
-        for (int i = 0; i < g.V(); i++)
-            distTo[i] = Double.POSITIVE_INFINITY;
-        distTo[start] = 0.0;
-        Arrays.fill(hopTo, 0);
-
+        hopTo = new HashMap<>();
+        distTo = new HashMap<>();
+        distTo.put(start, 0.0);
 
         // relax vertices in order of distance from s
         pq = new IndexMinPQ<Double>(VertexCount);
-        pq.insert(start, distTo[start]);
+        pq.insert(start, distTo.get(start));
 
-        while (!pq.isEmpty()) {
+        while (!pq.isEmpty() && relaxedEdgesCount < CUT_OFF) {
             int v = pq.delMin();
-            if(distTo[v] > distLimit || hopTo[v] > hopLimit)
-                continue;
+            // System.out.println(v);
+
+            if(!hopTo.containsKey(v))
+                hopTo.put(v,0);
+            if(!distTo.containsKey(v))
+                distTo.put(v, Double.POSITIVE_INFINITY);
+
+            if(distTo.get(v) > distLimit || hopTo.get(v) > hopLimit)
+                return distTo.get(target);
+                
             for (Edge e : g.adj(v))
                 relaxLim(e, v, g, distLimit, hopLimit);
+
             if(v==target)
-                return distTo(v);
+                return distTo.get(v);
         }
         // check optimality conditions
         // assert check(g, s);
-        return distTo(target);
+        if(distTo.containsKey(target))
+            return distTo.get(target);
+        else 
+            return -1;
     }
 
     // relax Edge e and update pq if changed
@@ -152,17 +163,24 @@ public class Dijkstra{
     private void relaxLim(Edge e, int v, Graph g, double distLimit, int hopLimit) {
         int w = e.other(v);
         // Vertex W = g.getVertices().get(w);
-        hopTo[w] = hopTo[v]+1;
+        if(!distTo.containsKey(w))
+            distTo.put(w, Double.POSITIVE_INFINITY);
 
-        if(distTo[v] >= distTo[v] +e.weight() || hopTo[w] > hopLimit)
+        hopTo.put(w, hopTo.get(v) + 1);
+        hopTo.put(w, 1);
+
+        double newDist = distTo.get(v) + e.weight();
+
+        if(newDist >= distLimit || hopTo.get(w) >= hopLimit){
+            // System.out.println("cutoff");
             return;
-        
-        if (distTo[w] > distTo[v] + e.weight()) {
-            // distTo.get(w) = distTo[v] + e.weight();
-            distTo[w] = distTo[v] + e.weight();
+        }
+
+        if (distTo.get(w) > newDist) {
+            distTo.put(w, newDist);
             edgeTo[w] = e;
-            if (pq.contains(w)) pq.decreaseKey(w, distTo[w]);
-            else                pq.insert(w, distTo[w]);
+            if (pq.contains(w)) pq.decreaseKey(w, distTo.get(w));
+            else                pq.insert(w, distTo.get(w));
         }
         relaxedEdgesCount ++;
     }
@@ -172,30 +190,30 @@ public class Dijkstra{
         int w = e.other(v);
         // Vertex W = g.getVertices().get(w);
         
-        if (distTo[w] > distTo[v] + e.weight()) {
+        if (distTo.containsKey(w) && distTo.get(w) > distTo.get(v) + e.weight()) {
             // distTo.get(w) = distTo[v] + e.weight();
-            distTo[w] = distTo[v] + e.weight();
+            distTo.put(w, distTo.get(v) + e.weight());
             edgeTo[w] = e;
-            if (pq.contains(w)) pq.decreaseKey(w, distTo[w]);
-            else                pq.insert(w, distTo[w]);
+            if (pq.contains(w)) pq.decreaseKey(w, distTo.get(w));
+            else                pq.insert(w, distTo.get(w));
         }
         relaxedEdgesCount ++;
     }
 
     public double distTo(int v) {
-        validateVertex(v);
-        return distTo[v];
+        // validateVertex(v);
+        return distTo.get(v);
     }
 
     public boolean hasPathTo(Graph g, int V) {
         int v = g.getIndexForVertex(V);
-        validateVertex(v);
-        return distTo[v] < Double.POSITIVE_INFINITY;
+        // validateVertex(v);
+        return distTo.get(v) < Double.POSITIVE_INFINITY;
     }
 
     public Iterable<Edge> pathTo(Graph g, int v) {
         //TO DO: make new path to
-        validateVertex(v);
+        // validateVertex(v);
         if (!hasPathTo(g, v)) return null;
         Stack<Edge> path = new Stack<Edge>();
         // int x = v;
@@ -222,13 +240,13 @@ public class Dijkstra{
         }
 
         // check that distTo[v] and edgeTo[v] are consistent
-        if (distTo[s] != 0.0 || edgeTo[s] != null) {
+        if (distTo.get(s) != 0.0 || edgeTo[s] != null) {
             System.err.println("distTo[s] and edgeTo[s] inconsistent");
             return false;
         }
         for (int v = 0; v < g.V(); v++) {
             if (v == s) continue;
-            if (edgeTo[v] == null && distTo[v] != Double.POSITIVE_INFINITY) {
+            if (edgeTo[v] == null && distTo.get(v) != Double.POSITIVE_INFINITY) {
                 System.err.println("distTo[] and edgeTo[] inconsistent");
                 return false;
             }
@@ -238,7 +256,7 @@ public class Dijkstra{
         for (int v = 0; v < g.V(); v++) {
             for (Edge e : g.adj[v]) {
                 int w = e.other(v);
-                if (distTo[v] + e.weight() < distTo[w]) {
+                if (distTo.get(v) + e.weight() < distTo.get(w)) {
                     System.err.println("Edg " + e + " not relaxed");
                     return false;
                 }
@@ -251,19 +269,12 @@ public class Dijkstra{
             Edge e = edgeTo[w];
             if (w != e.either() && w != e.other(e.either())) return false;
             int v = (int)e.other(w);
-            if (distTo[v] + e.weight() != distTo[w]) {
+            if (distTo.get(v) + e.weight() != distTo.get(w)) {
                 System.err.println("Edg " + e + " on shortest path not tight");
                 return false;
             }
         }
         return true;
-    }
-
-    // throw an IllegalArgumentException unless {@code 0 <= v < V}
-    private void validateVertex(int v) {
-        int V = distTo.length;
-        if (v < 0 || v >= V)
-            throw new IllegalArgumentException("vertex " + v + " is not between 0 and " + (V-1));
     }
 
     /**
@@ -284,7 +295,7 @@ public class Dijkstra{
     }
 
     public static void main(String[] args) throws FileNotFoundException {
-        File input1 = new File("/Users/lennart/Documents/00_ITU/03_Sem03/02_Applied_Algorithms/Assignment3/route-planning/denmark.graph");
+        File input1 = new File("/Users/lennart/Documents/00_ITU/03_Sem03/02_Applied_Algorithms/Assignment3/route-planning/denmark_new.graph");
         Graph g = new Graph(input1);
         Dijkstra dijkstra = new Dijkstra();
 

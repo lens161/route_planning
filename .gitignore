@@ -1,0 +1,15 @@
+.vscode
+
+C:\Program Files\Gradle
+# Ignore Gradle project-specific cache directory
+.gradle
+
+# Ignore Gradle build output directory
+build
+
+/main/resources/*.graph
+
+.graph
+.csv
+
+exp2.py

@@ -13,6 +13,7 @@ public class Graph {
     public List<Edge>[] adj;
     private Map<Long, Integer> vertexIdToIndexMap;
     private long[] indexToVertexId;
+    private List<Vertex2> vertices;  // List to store Vertex2 objects
 
     @SuppressWarnings("unchecked")
     public Graph(File file) throws FileNotFoundException {
@@ -22,7 +23,7 @@ public class Graph {
         int V = Integer.parseInt(VE[0]);
         int E = Integer.parseInt(VE[1]);
         this.V = V;
-        this.E = 0; 
+        this.E = 0;
 
         adj = (List<Edge>[]) new ArrayList[V];
         for (int i = 0; i < V; i++) {
@@ -31,23 +32,30 @@ public class Graph {
 
         vertexIdToIndexMap = new HashMap<>();
         indexToVertexId = new long[V];
+        vertices = new ArrayList<>(Collections.nCopies(V, null)); // Initialize list with nulls
 
-
+        // Read vertices and create Vertex2 instances
         for (int i = 0; i < V; i++) {
-            String[] vertex = sc.nextLine().split(" ");
-            long vertexId = Long.parseLong(vertex[0]);
+            String[] vertexData = sc.nextLine().split(" ");
+            long vertexId = Long.parseLong(vertexData[0]);
+            float longitude = Float.parseFloat(vertexData[1]);
+            float latitude = Float.parseFloat(vertexData[2]);
+
             vertexIdToIndexMap.put(vertexId, i);
             indexToVertexId[i] = vertexId;
 
+            // Create a new Vertex2 and store it in the list
+            Vertex2 vertex = new Vertex2(vertexId, i, longitude, latitude);
+            vertices.set(i, vertex);  // Add Vertex2 object to the list
         }
 
         // Read edges
         for (int i = 0; i < E; i++) {
             String line = sc.nextLine();
-            String[] edge = line.split(" ");
-            long vId = Long.parseLong(edge[0]);
-            long wId = Long.parseLong(edge[1]);
-            double weight = Double.parseDouble(edge[2]);
+            String[] edgeData = line.split(" ");
+            long vId = Long.parseLong(edgeData[0]);
+            long wId = Long.parseLong(edgeData[1]);
+            double weight = Double.parseDouble(edgeData[2]);
 
             int v = vertexIdToIndexMap.get(vId);
             int w = vertexIdToIndexMap.get(wId);
@@ -87,20 +95,22 @@ public class Graph {
         return indexToVertexId[index];
     }
 
+    public Vertex2 getVertexByIndex(int index) {
+        return vertices.get(index);
+    }
+
     public Iterable<Long> getVertexIds() {
         return vertexIdToIndexMap.keySet();
     }
 
     public Iterable<Edge> edges() {
-        LinkedList<Edge> list = new LinkedList<Edge>();
-        for (int v = 0 ; v < adj.length; v ++) {
+        LinkedList<Edge> list = new LinkedList<>();
+        for (int v = 0; v < adj.length; v++) {
             int selfLoops = 0;
             for (Edge e : adj[v]) {
                 if (e.other(v) > v) {
                     list.add(e);
-                }
-                // only add one copy of each self loop (self loops will be consecutive)
-                else if (e.other(v) == v) {
+                } else if (e.other(v) == v) {
                     if (selfLoops % 2 == 0) list.add(e);
                     selfLoops++;
                 }

@@ -1,6 +1,7 @@
 package org.example;
 
 import java.io.File;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
@@ -9,6 +10,7 @@ public class ContractionHierarchy {
     private final Graph graph;
     private final int[] rank;
     private int contractionOrder;
+    private PriorityQueue<Integer> contractionQueue;
 
     public ContractionHierarchy(Graph graph) {
         this.graph = graph;
@@ -16,34 +18,89 @@ public class ContractionHierarchy {
         Arrays.fill(rank, -1);
         this.contractionOrder = 0;
     }
+    
+    private int nodeImportanceScore(int v) {
+        int degree = ((List<Edge>) graph.adj(v)).size();
+        return degree; // Prioritize low-degree nodes
+    }
+
+    private void initializeContractionQueue() {
+        contractionQueue = new PriorityQueue<>(Comparator.comparingInt(this::nodeImportanceScore));
+        for (int i = 0; i < graph.V(); i++) {
+            contractionQueue.add(i);
+        }
+    }
 
     public void preprocess() {
-        for (int v = 0; v < graph.V(); v++) {
-            contractNode(v);
+        initializeContractionQueue();
+
+        int processedNodes = 0;
+        int batchSize = Math.max(1000, (graph.V() - processedNodes) / 10); // Larger batches near the end
+    
+        while (!contractionQueue.isEmpty()) {
+            List<Integer> batch = new ArrayList<>();
+            for (int i = 0; i < batchSize && !contractionQueue.isEmpty(); i++) {
+                batch.add(contractionQueue.poll());
+            }
+    
+            for (int v : batch) {
+                contractNode(v);
+                processedNodes++;
+            }
+    
+            // Update queue after each batch and print progress
+            updateContractionQueue(batch);
+            System.out.println("Processed nodes: " + processedNodes + " / " + graph.V() + " (" + (processedNodes * 100 / graph.V()) + "%)");
+        }
+    }
+
+    private void updateContractionQueue(List<Integer> contractedNodes) {
+        for (int v : contractedNodes) {
+            if (rank[v] == -1) contractionQueue.add(v); // Re-add only unranked nodes
         }
     }
 
     private void contractNode(int v) {
         rank[v] = contractionOrder++;
         List<Edge> neighbors = (List<Edge>) graph.adj(v);
-
-        // Iterate through each pair of neighbors to add shortcuts if necessary
+    
         for (Edge edge1 : neighbors) {
             int u = edge1.other(v);
             for (Edge edge2 : neighbors) {
                 int w = edge2.other(v);
+    
                 if (u != w && !edgeExists(u, w)) {
                     double shortcutWeight = edge1.weight() + edge2.weight();
-                    Edge shortcut = new Edge(u, w, shortcutWeight, v); // Create shortcut with `v` as the contracted node
-                    graph.addEdge(shortcut); // Add shortcut to the graph
-                    System.out.println(shortcut);
+                    if (!witnessSearch(u, w, shortcutWeight)) {
+                        Edge shortcut = new Edge(u, w, shortcutWeight, v);
+                        graph.addEdge(shortcut);
+                    }
                 }
             }
         }
+    
+        // Print progress for every 1000 nodes contracted
+        if (contractionOrder % 1000 == 0) {
+            System.out.println("Contracted " + contractionOrder + " nodes out of " + graph.V());
+        }
     }
 
+    /**
+     * Performs a witness search from node u to node w within a limited distance.
+     * 
+     * @param uIndex - the index of the starting node
+     * @param wIndex - the index of the target node
+     * @param maxDistance - maximum allowable distance for a shortcut
+     * @return true if a path exists within maxDistance; otherwise, false
+     */
+    private boolean witnessSearch(int uIndex, int wIndex, double maxDistance) {
+        Dijkstra2 dijkstra = new Dijkstra2();
+        double distance = dijkstra.runDijkstra2(graph, graph.getVertexId(uIndex), graph.getVertexId(wIndex), maxDistance, 3);
+        return distance <= maxDistance;
+    }
+
+
     private boolean edgeExists(int u, int w) {
-        // Check if an edge already exists between u and w
         for (Edge e : graph.adj(u)) {
             if (e.other(u) == w) return true;
         }
@@ -52,26 +109,38 @@ public class ContractionHierarchy {
 
     public void saveAugmentedGraph(String filename) throws IOException {
         try (FileWriter writer = new FileWriter(filename)) {
+            // First line: write the number of vertices and edges
             writer.write(graph.V() + " " + graph.E() + "\n");
-            
-            // Write vertex ranks
+    
+            // Write each vertex's ID, longitude, and latitude
             for (int i = 0; i < graph.V(); i++) {
-                writer.write(i + " " + rank[i] + "\n");
+                Vertex2 vertex = graph.getVertexByIndex(i);
+                writer.write(vertex.getId() + " " + vertex.getLongitude() + " " + vertex.getLatitude() + "\n");
             }
-            
-            // Write edges, indicating if each edge is a shortcut
+    
+            // Write edges, marking shortcuts and original edges separately
             for (Edge e : graph.edges()) {
-                writer.write(e.V() + " " + e.W() + " " + e.weight() + " " + (e.c == -1 ? -1 : e.c) + "\n");
+                long originalV = graph.getVertexId(e.V());
+                long originalW = graph.getVertexId(e.W());
+                
+                // For original edges, we output `-1` for the shortcut indicator
+                if (e.c == -1) {
+                    writer.write(originalV + " " + originalW + " " + e.weight() + " -1\n");
+                } else {
+                    // For shortcut edges, we output the contracted node's ID
+                    writer.write(originalV + " " + originalW + " " + e.weight() + " " + graph.getVertexId(e.c) + "\n");
+                }
             }
         }
     }
-
     public int[] getRanks() {
         return rank;
     }
+
+
     public static void main(String[] args) throws IOException {
-        // Graph graph = new Graph(new File("/home/knor/route/route-planning/app/src/main/resources/denmark.graph")); 
-        Graph graph = new Graph(new File("/home/knor/route/route-planning/SmallTest.graph")); 
+        // Graph graph = new Graph(new File("/home/knor/route/newdenmark.graph")); 
+        Graph graph = new Graph(new File("/home/knor/route/newdenmark.graph")); 
 
         ContractionHierarchy ch = new ContractionHierarchy(graph);
 

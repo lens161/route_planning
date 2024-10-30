@@ -5,12 +5,9 @@ import java.io.FileNotFoundException;
 import java.util.*;
 
 public class Graph {
-    @SuppressWarnings("unused")
-    private static final String NEWLINE = System.getProperty("line.separator");
-
     private final int V;
     private int E;
-    public List<Edge>[] adj;
+    public Map<Integer, Edge>[] adj;
     private Map<Long, Integer> vertexIdToIndexMap;
     private long[] indexToVertexId;
     private List<Vertex2> vertices;  // List to store Vertex2 objects
@@ -25,9 +22,9 @@ public class Graph {
         this.V = V;
         this.E = 0;
 
-        adj = (List<Edge>[]) new ArrayList[V];
+        adj = (Map<Integer, Edge>[]) new HashMap[V];
         for (int i = 0; i < V; i++) {
-            adj[i] = new ArrayList<>();
+            adj[i] = new HashMap<>();
         }
 
         vertexIdToIndexMap = new HashMap<>();
@@ -70,8 +67,8 @@ public class Graph {
         int v = e.either();
         int w = e.other(v);
 
-        adj[v].add(e);
-        adj[w].add(e);
+        adj[v].put(w, e);
+        adj[w].put(v, e);
         E++;
     }
 
@@ -84,7 +81,7 @@ public class Graph {
     }
 
     public Iterable<Edge> adj(int v) {
-        return adj[v];
+        return adj[v].values();
     }
 
     public int getIndexForVertex(long vertexId) {
@@ -107,10 +104,11 @@ public class Graph {
         LinkedList<Edge> list = new LinkedList<>();
         for (int v = 0; v < adj.length; v++) {
             int selfLoops = 0;
-            for (Edge e : adj[v]) {
-                if (e.other(v) > v) {
+            for (Edge e : adj[v].values()) {
+                int w = e.other(v);
+                if (w > v) {
                     list.add(e);
-                } else if (e.other(v) == v) {
+                } else if (w == v) {
                     if (selfLoops % 2 == 0) list.add(e);
                     selfLoops++;
                 }

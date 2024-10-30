@@ -1,7 +1,6 @@
 package org.example;
 
 import java.io.File;
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
@@ -18,9 +17,9 @@ public class ContractionHierarchy {
         Arrays.fill(rank, -1);
         this.contractionOrder = 0;
     }
-    
+
     private int nodeImportanceScore(int v) {
-        int degree = ((List<Edge>) graph.adj(v)).size();
+        int degree = graph.adj[v].size();
         return degree; // Prioritize low-degree nodes
     }
 
@@ -36,18 +35,18 @@ public class ContractionHierarchy {
 
         int processedNodes = 0;
         int batchSize = Math.max(1000, (graph.V() - processedNodes) / 10); // Larger batches near the end
-    
+
         while (!contractionQueue.isEmpty()) {
             List<Integer> batch = new ArrayList<>();
             for (int i = 0; i < batchSize && !contractionQueue.isEmpty(); i++) {
                 batch.add(contractionQueue.poll());
             }
-    
+
             for (int v : batch) {
                 contractNode(v);
                 processedNodes++;
             }
-    
+
             // Update queue after each batch and print progress
             updateContractionQueue(batch);
             System.out.println("Processed nodes: " + processedNodes + " / " + graph.V() + " (" + (processedNodes * 100 / graph.V()) + "%)");
@@ -62,13 +61,13 @@ public class ContractionHierarchy {
 
     private void contractNode(int v) {
         rank[v] = contractionOrder++;
-        List<Edge> neighbors = (List<Edge>) graph.adj(v);
-    
-        for (Edge edge1 : neighbors) {
+        Map<Integer, Edge> neighbors = graph.adj[v];
+
+        for (Edge edge1 : neighbors.values()) {
             int u = edge1.other(v);
-            for (Edge edge2 : neighbors) {
+            for (Edge edge2 : neighbors.values()) {
                 int w = edge2.other(v);
-    
+
                 if (u != w && !edgeExists(u, w)) {
                     double shortcutWeight = edge1.weight() + edge2.weight();
                     if (!witnessSearch(u, w, shortcutWeight)) {
@@ -78,7 +77,7 @@ public class ContractionHierarchy {
                 }
             }
         }
-    
+
         // Print progress for every 1000 nodes contracted
         if (contractionOrder % 1000 == 0) {
             System.out.println("Contracted " + contractionOrder + " nodes out of " + graph.V());
@@ -87,7 +86,7 @@ public class ContractionHierarchy {
 
     /**
      * Performs a witness search from node u to node w within a limited distance.
-     * 
+     *
      * @param uIndex - the index of the starting node
      * @param wIndex - the index of the target node
      * @param maxDistance - maximum allowable distance for a shortcut
@@ -95,34 +94,37 @@ public class ContractionHierarchy {
      */
     private boolean witnessSearch(int uIndex, int wIndex, double maxDistance) {
         Dijkstra2 dijkstra = new Dijkstra2();
-        double distance = dijkstra.runDijkstra2(graph, graph.getVertexId(uIndex), graph.getVertexId(wIndex), maxDistance, 3);
+        double distance = dijkstra.runDijkstra2(
+            graph,
+            graph.getVertexId(uIndex),
+            graph.getVertexId(wIndex),
+            maxDistance,
+            3,
+            rank // Pass the nodeRanks array
+        );
         return distance <= maxDistance;
     }
 
-
     private boolean edgeExists(int u, int w) {
-        for (Edge e : graph.adj(u)) {
-            if (e.other(u) == w) return true;
-        }
-        return false;
+        return graph.adj[u].containsKey(w);
     }
 
     public void saveAugmentedGraph(String filename) throws IOException {
         try (FileWriter writer = new FileWriter(filename)) {
             // First line: write the number of vertices and edges
             writer.write(graph.V() + " " + graph.E() + "\n");
-    
+
             // Write each vertex's ID, longitude, and latitude
             for (int i = 0; i < graph.V(); i++) {
                 Vertex2 vertex = graph.getVertexByIndex(i);
                 writer.write(vertex.getId() + " " + vertex.getLongitude() + " " + vertex.getLatitude() + "\n");
             }
-    
+
             // Write edges, marking shortcuts and original edges separately
             for (Edge e : graph.edges()) {
                 long originalV = graph.getVertexId(e.V());
                 long originalW = graph.getVertexId(e.W());
-                
+
                 // For original edges, we output `-1` for the shortcut indicator
                 if (e.c == -1) {
                     writer.write(originalV + " " + originalW + " " + e.weight() + " -1\n");
@@ -133,22 +135,24 @@ public class ContractionHierarchy {
             }
         }
     }
+
     public int[] getRanks() {
         return rank;
     }
 
-
     public static void main(String[] args) throws IOException {
-        // Graph graph = new Graph(new File("/home/knor/route/newdenmark.graph")); 
-        Graph graph = new Graph(new File("/home/knor/route/newdenmark.graph")); 
+        Graph graph2 = new Graph(new File("/home/knor/route/route-planning/SmallTest.graph"));
+        // Graph graph = new Graph(new File("/home/knor/route/route-planning/SmallTest.graph"));
 
-        ContractionHierarchy ch = new ContractionHierarchy(graph);
+        ContractionHierarchy ch = new ContractionHierarchy(graph2);
 
         ch.preprocess();
-        int[] ranks = ch.getRanks();
+        // int[] ranks = ch.getRanks();
 
-        CHQuery query = new CHQuery(graph, ranks);
-        System.out.println(query.query(1, 6));
+        // Uncomment if you have a CHQuery class implemented
+        // CHQuery query = new CHQuery(graph, ranks);
+        // System.out.println(query.query(1, 6));
+
         ch.saveAugmentedGraph("test");
     }
 }

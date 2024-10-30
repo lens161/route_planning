@@ -14,7 +14,7 @@ public class Dijkstra2 {
         // No initialization needed here
     }
 
-    public double runDijkstra2(Graph g, long s, long t, double maxDistance, int maxHops) {
+    public double runDijkstra2(Graph g, long s, long t, double maxDistance, int maxHops, int[] nodeRanks) {
         int start = g.getIndexForVertex(s);
         int target = g.getIndexForVertex(t);
 
@@ -49,7 +49,7 @@ public class Dijkstra2 {
 
             // Relax edges from v
             for (Edge e : g.adj(v)) {
-                relax(e, v);
+                relax(e, v, nodeRanks);
             }
         }
 
@@ -58,8 +58,14 @@ public class Dijkstra2 {
     }
 
     // Relax edge e and update pq if needed
-    private void relax(Edge e, int v) {
+    private void relax(Edge e, int v, int[] nodeRanks) {
         int w = e.other(v);
+
+        // Add the contraction level check here
+        if (nodeRanks[w] > nodeRanks[v]) {
+            return; // Skip nodes with higher contraction levels
+        }
+
         double newDist = distTo[v] + e.weight();
         int newHopCount = hopCounts.getOrDefault(v, 0) + 1;
 

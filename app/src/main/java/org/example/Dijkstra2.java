@@ -4,13 +4,17 @@ package org.example;
 import java.util.*;
 
 public class Dijkstra2 {
-    private Map<Integer, Double> distTo;    // distTo[v] = distance of shortest s->v path
-    private Map<Integer, Edge> edgeTo;      // edgeTo[v] = last Edge on shortest s->v path
-    private PriorityQueue<Node> pq;         // priority queue of nodes
-    private Map<Integer, Integer> hopCounts; // Hop count from start for each vertex
-    private Set<Integer> settled;           // Settled vertices to prevent revisiting
-    private Set<Integer> inQueue;           // Nodes currently in the queue
-    private int[] rank;                     // Node ranks for contraction hierarchy
+    private Map<Integer, Double> distTo;    
+    private Map<Integer, Edge> edgeTo;      
+    private PriorityQueue<Node> pq; 
+    // Hop count from start vertices        
+    private Map<Integer, Integer> hopCounts;
+    // Settled vertices to prevent visiting those again 
+    private Set<Integer> settled;
+    // Nodes currently in the queue           
+    private Set<Integer> inQueue; 
+    // Node ranks for contraction hierarchy          
+    private int[] rank; 
 
     public Dijkstra2() {
         distTo = new HashMap<>();
@@ -21,9 +25,9 @@ public class Dijkstra2 {
     }
 
     public double runDijkstra2(Graph g, int s, int t, double maxDistance, int maxHops, int[] nodeRanks) {
-        this.rank = nodeRanks; // Store the rank array for stall-on-demand
+        this.rank = nodeRanks;
 
-        // Clear data structures for a fresh run
+        // Clear everything before a new run
         distTo.clear();
         edgeTo.clear();
         hopCounts.clear();
@@ -39,7 +43,7 @@ public class Dijkstra2 {
         inQueue.add(s);
 
         int settledNodes = 0;
-        int maxSettledNodes = 100; // Reduced to limit search space
+        int maxSettledNodes = 100;
 
         // Main loop
         while (!pq.isEmpty() && settledNodes < maxSettledNodes) {
@@ -57,30 +61,19 @@ public class Dijkstra2 {
                 return currentDist;
             }
 
-            // Early stopping if distance or hop count exceeds the limits
+            // stop eraly if distance or hop count exceed the limits.
             int currentHops = hopCounts.getOrDefault(v, 0);
             if (currentDist > maxDistance || currentHops > maxHops) {
                 continue;
             }
 
-            // Stall-on-demand: skip nodes that can be reached via higher-ranked nodes
-            boolean stalled = false;
-            for (Edge e : g.adj(v)) {
-                int u = e.other(v);
-                if (rank[u] > rank[v] && distTo.containsKey(u) && distTo.get(u) + e.weight() < currentDist) {
-                    stalled = true;
-                    break;
-                }
-            }
-            if (stalled) continue;
-
-            // Relax edges from v
+            // relax edges from v 
             for (Edge e : g.adj(v)) {
                 relax(e, v);
             }
         }
 
-        // If no path is found within limits, return infinity
+        // if no path is found return infinity
         return Double.POSITIVE_INFINITY;
     }
 
@@ -88,11 +81,12 @@ public class Dijkstra2 {
     private void relax(Edge e, int v) {
         int w = e.other(v);
 
-        // Skip nodes with higher contraction levels
+        // Skip if node has higher contraction level because the algorithm will get to this later automatically
         if (rank[w] > rank[v]) {
             return;
         }
 
+        // do the normal dijkstra stuffs - sort of copied from the algs4 library
         double distV = distTo.get(v);
         double newDist = distV + e.weight();
         int newHopCount = hopCounts.getOrDefault(v, 0) + 1;
@@ -111,7 +105,7 @@ public class Dijkstra2 {
         }
     }
 
-    // Helper class to represent nodes in the priority queue
+    // Node class for priority queue
     private static class Node implements Comparable<Node> {
         int id;
         double dist;

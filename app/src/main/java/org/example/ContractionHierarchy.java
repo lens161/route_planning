@@ -14,6 +14,7 @@ public class ContractionHierarchy {
     private TreeSet<Node> contractionQueue;
     private Map<Integer, Node> nodeReferences;
     // every Thread gets its own Dijkstra Object such that the individual calls do not interfere with each other
+    // so whenever an instance of this special dijkstra is instanciated it will be local to only the thread it was created in
     private ThreadLocal<Dijkstra2> threadLocalDijkstra = ThreadLocal.withInitial(Dijkstra2::new);
     private long totalContractNodeTime = 0;
     private int contractedNodeCount = 0;
@@ -47,18 +48,24 @@ public class ContractionHierarchy {
         }
     }
 
-    /**
-     * Calculates the importance score of a node.
-     * Includes various heuristics as per the Geisberger paper.
-     */
+    
+    // Calculates the importance score of a node.
+    // Includes heuristics from the Geisberger Paper.
     private int calculateNodeImportance(int v) {
+        // the edge difference based on the estimated shortcuts per contracted vertex
+        // the more shortcuts can be added by contracting the vertex, the higher the priority
         int edgeDifference = computeEdgeDifference(v);
+        // number of already contracted neighbours. only important for contraction. 
+        //not necessary for initialisation of contraction queue.
         int contractedNeighbors = computeContractedNeighbors(v);
-        int shortcutCover = computeShortcutCover(v);
+        // degree heuristic: promtote vertices with higher degree to be contracted earlier.
         int degree = graph.adj[v].size();
 
         // Combine heuristics into a single importance score
-        int importance = edgeDifference * 14 + contractedNeighbors * 25 + shortcutCover * 10 + degree * 15;
+        // low edge difference -> contract earlier
+        // high contracted Neighbours and degree -> contract earlier
+        // low importance -> higher up in queue:
+        int importance = -(contractedNeighbors*2  + degree*2) + edgeDifference*10;
 
         return importance;
     }
@@ -71,7 +78,7 @@ public class ContractionHierarchy {
             }
         }
 
-        // the amount of shortcuts is only estimated to shorten preprocessing time
+        // the amount of shortcuts is only estimated -> shortens preprocessing time
         int shortcutEdges = estimateShortcuts(v);
         return shortcutEdges - originalEdges;
     }
@@ -87,17 +94,13 @@ public class ContractionHierarchy {
         return contracted;
     }
 
-    private int computeShortcutCover(int v) {
-        return estimateShortcuts(v);
-    }
-
     private int estimateShortcuts(int v) {
         int shortcuts = 0;
-        //get all 
+        //get all neighbours of v
         List<Integer> neighbors = new ArrayList<>();
         for (Edge e : graph.adj[v].values()) {
             int w = e.other(v);
-            if (rank[w] == -1) { // Only consider uncontracted neighbors
+            if (rank[w] == -1) { // Only consider uncontracted neighbours
                 neighbors.add(w);
             }
         }
@@ -120,6 +123,7 @@ public class ContractionHierarchy {
         contractionQueue = new TreeSet<>();
         nodeReferences = new HashMap<>();
 
+        // add all vertices and their importance to the queue
         for (int i = 0; i < graph.V(); i++) {
             int importance = calculateNodeImportance(i);
             Node node = new Node(i, importance);
@@ -141,7 +145,7 @@ public class ContractionHierarchy {
             // Recalculate importance
             int newImportance = calculateNodeImportance(v);
             if (newImportance > node.importance) {
-                // Reinsert with updated importance
+                // Reinsert with updated importance to the queue
                 Node newNode = new Node(v, newImportance);
                 contractionQueue.add(newNode);
                 nodeReferences.put(v, newNode);
@@ -154,7 +158,7 @@ public class ContractionHierarchy {
             // Update queue with affected neighbors
             updateContractionQueue(v);
 
-            // Print progress every 10,000 nodes
+            // Print progress only every 10,000 nodes to avoid spamming the bloody terminal
             if (contractionOrder % 10000 == 0) {
                 System.out.println("Contracted " + contractionOrder + " nodes out of " + graph.V());
 
@@ -242,25 +246,11 @@ public class ContractionHierarchy {
         contractedNodeCount++;
     }
 
-    /**
-     * Performs a witness search from node u to node w within a limited distance and hops.
-     *
-     * @param uIndex     - the index of the starting node
-     * @param wIndex     - the index of the target node
-     * @param maxDistance - maximum allowable distance for a shortcut
-     * @param maxHops    - maximum number of hops to consider
-     * @return true if a path exists within maxDistance and maxHops; otherwise, false
-     */
+    
+    //Do witness search from node u to node w within a limited distance and hops.
     private boolean witnessSearch(int uIndex, int wIndex, double maxDistance, int maxHops) {
         Dijkstra2 dijkstra = threadLocalDijkstra.get();
-        double distance = dijkstra.runDijkstra2(
-                graph,
-                uIndex,
-                wIndex,
-                maxDistance,
-                maxHops,
-                rank // Pass the nodeRanks array
-        );
+        double distance = dijkstra.runDijkstra2(graph, uIndex, wIndex, maxDistance, maxHops, rank);
         return distance <= maxDistance;
     }
 
@@ -269,35 +259,31 @@ public class ContractionHierarchy {
             // First line: write the number of vertices and edges
             writer.write(graph.V() + " " + graph.E() + "\n");
 
-            // Write each vertex's ID, longitude, and latitude
+            // Write each vertex's ID, longitude, latitude and rank
             for (int i = 0; i < graph.V(); i++) {
                 Vertex2 vertex = graph.getVertexByIndex(i);
-                writer.write(vertex.getId() + " " + vertex.getLongitude() + " " + vertex.getLatitude() + "\n");
+                writer.write(vertex.getId() + " " + vertex.getLongitude() + " " + vertex.getLatitude() + " " + rank[i] +  "\n");
             }
 
-            // Write edges, marking shortcuts and original edges separately
+            // Write edges, marking shortcuts and original edges
             for (Edge e : graph.edges()) {
                 long originalV = graph.getVertexId(e.V());
                 long originalW = graph.getVertexId(e.W());
 
-                // For original edges, we output -1 for the shortcut indicator
+                // For original edges label -1 
                 if (e.c == -1) {
                     writer.write(originalV + " " + originalW + " " + e.weight() + " -1\n");
                 } else {
-                    // For shortcut edges, we output the contracted node's ID
+                    // For shortcut edges label the vertex the shortcut has been contracted from
                     writer.write(originalV + " " + originalW + " " + e.weight() + " " + graph.getVertexId(e.c) + "\n");
                 }
             }
         }
     }
 
-    public int[] getRanks() {
-        return rank;
-    }
-
     public static void main(String[] args) throws IOException {
         // Replace with your graph file path
-        Graph graph = new Graph(new File("/home/knor/route/newdenmark.graph"));
+        Graph graph = new Graph(new File("/Users/lennart/Documents/00_ITU/03_Sem03/02_Applied_Algorithms/Assignment3/route-planning/denmark_newnew.graph"));
 
         ContractionHierarchy ch = new ContractionHierarchy(graph);
 

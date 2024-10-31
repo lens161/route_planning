@@ -8,10 +8,12 @@ import java.util.*;
 
 public class ContractionHierarchy {
     private final Graph graph;
+    // this is the "stale" list
     private final int[] rank;
     private int contractionOrder;
     private TreeSet<Node> contractionQueue;
     private Map<Integer, Node> nodeReferences;
+    // every Thread gets its own Dijkstra Object such that the individual calls do not interfere with each other
     private ThreadLocal<Dijkstra2> threadLocalDijkstra = ThreadLocal.withInitial(Dijkstra2::new);
     private long totalContractNodeTime = 0;
     private int contractedNodeCount = 0;
@@ -25,6 +27,7 @@ public class ContractionHierarchy {
     }
 
     // Node class for priority queue
+    // Nodes represent the items in the priority queue (treeset).
     private class Node implements Comparable<Node> {
         int index;
         int importance;
@@ -68,6 +71,7 @@ public class ContractionHierarchy {
             }
         }
 
+        // the amount of shortcuts is only estimated to shorten preprocessing time
         int shortcutEdges = estimateShortcuts(v);
         return shortcutEdges - originalEdges;
     }
@@ -89,6 +93,7 @@ public class ContractionHierarchy {
 
     private int estimateShortcuts(int v) {
         int shortcuts = 0;
+        //get all 
         List<Integer> neighbors = new ArrayList<>();
         for (Edge e : graph.adj[v].values()) {
             int w = e.other(v);
@@ -97,6 +102,8 @@ public class ContractionHierarchy {
             }
         }
 
+        // find wether there is a direct connection between the two neighbours.
+        // if not then the connection through v is most likely worth a shortcut
         for (int i = 0; i < neighbors.size(); i++) {
             int u = neighbors.get(i);
             for (int j = i + 1; j < neighbors.size(); j++) {

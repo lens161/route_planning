@@ -14,7 +14,7 @@ public class ContractionHierarchy {
     private TreeSet<Node> contractionQueue;
     private Map<Integer, Node> nodeReferences;
     // every Thread gets its own Dijkstra Object such that the individual calls do not interfere with each other
-    // so whenever an instance of this special dijkstra is instanciated it will be local to only the thread it was created in
+    // so whenever an instance of this special dijkstra is instanciated it will be local to only the thread it was created 
     private ThreadLocal<Dijkstra2> threadLocalDijkstra = ThreadLocal.withInitial(Dijkstra2::new);
     private long totalContractNodeTime = 0;
     private int contractedNodeCount = 0;

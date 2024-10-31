@@ -49,8 +49,9 @@ public class Graph {
         }
 
         // Read edges
-        for (int i = 0; i < E; i++) {
+        for (int i = 0; i < E-1; i++) {
             String line = sc.nextLine();
+            // System.out.println(line);
             String[] edgeData = line.split(" ");
             long vId = Long.parseLong(edgeData[0]);
             long wId = Long.parseLong(edgeData[1]);

@@ -104,20 +104,4 @@ public class Dijkstra2 {
             }
         }
     }
-
-    // Node class for priority queue
-    private static class Node implements Comparable<Node> {
-        int id;
-        double dist;
-
-        public Node(int id, double dist) {
-            this.id = id;
-            this.dist = dist;
-        }
-
-        @Override
-        public int compareTo(Node other) {
-            return Double.compare(this.dist, other.dist);
-        }
-    }
 }

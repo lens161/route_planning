@@ -20,22 +20,6 @@ public class BiDirectionalDijkstraCH {
 
     private long[] nodeRank; // Rank of each node for CH
 
-    // Node class for use in PriorityQueue
-    private class Node implements Comparable<Node> {
-        int vertex;
-        double distance;
-
-        Node(int vertex, double distance) {
-            this.vertex = vertex;
-            this.distance = distance;
-        }
-
-        @Override
-        public int compareTo(Node other) {
-            return Double.compare(this.distance, other.distance);
-        }
-    }
-
     public BiDirectionalDijkstraCH(int V, long[] nodeRank) {
         this.nodeRank = nodeRank; // Rank array for contraction hierarchy
     }
@@ -75,21 +59,21 @@ public class BiDirectionalDijkstraCH {
 
         while (!pqForward.isEmpty() && !pqBackward.isEmpty()) {
             // Termination condition
-            if (pqForward.peek().distance + pqBackward.peek().distance >= bestPathDistance) {
+            if (pqForward.peek().dist + pqBackward.peek().dist >= bestPathDistance) {
                 break;
             }
 
             // Decide which direction to expand
-            if (pqForward.peek().distance <= pqBackward.peek().distance) {
+            if (pqForward.peek().dist <= pqBackward.peek().dist) {
                 Node node = pqForward.poll();
-                int v = node.vertex;
+                int v = node.id;
                 if (!visitedForward[v]) {
                     visitedForward[v] = true;
                     relaxEdgesCH(g, v, distToForward, edgeToForward, distToBackward, visitedForward, visitedBackward, pqForward, true);
                 }
             } else {
                 Node node = pqBackward.poll();
-                int v = node.vertex;
+                int v = node.id;
                 if (!visitedBackward[v]) {
                     visitedBackward[v] = true;
                     relaxEdgesCH(g, v, distToBackward, edgeToBackward, distToForward, visitedBackward, visitedForward, pqBackward, false);

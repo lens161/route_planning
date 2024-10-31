@@ -39,15 +39,32 @@ def read_graph(graph_path):
     return vertices, vertices_plus, edges
 
 
-vertices, vertices_plus, edges = read_graph("denmark.graph")
+vertices, vertices_plus, edges = read_graph("newdenmark.graph")
 
-def generate_random_pairs(vertex_list, seed, n_pairs=1000):
+# def generate_random_pairs(vertex_list, seed, n_pairs=1000):
+#     random.seed(seed)
+#     random.shuffle(vertex_list)
+#     pairs = []
+#     for i in range(n_pairs):
+#         pairs.append((vertex_list[i], vertex_list[i+1]))
+#     return pairs
+
+def select_random_pairs(vertices, seed, n_pairs):
+    """
+    Selects random (s, t) pairs from the list of vertices, ensuring pairs are unique.
+    """
     random.seed(seed)
-    random.shuffle(vertex_list)
-    pairs = []
-    for i in range(n_pairs):
-        pairs.append((vertex_list[i], vertex_list[i+1]))
-    return pairs
+    selected_pairs = set()
+    
+    while len(selected_pairs) < n_pairs:
+        v1, v2 = random.sample(vertices, 2)
+        if (v1, v2) not in selected_pairs and (v2, v1) not in selected_pairs:
+            selected_pairs.add((v1, v2))
+    
+    print("Done finding pairs   ")
+    
+    return list(selected_pairs)
+
 
 def save_pairs_to_file(pairs, output_path):
     with open(output_path, "w") as file:
@@ -65,7 +82,7 @@ def run_java(jar: str, arg: str, input: str) -> str:
 def benchmark():
     input_size = 1000
     
-    input_data = ' '.join(map(str, generate_random_pairs(edges, seed, n_pairs=1000)))
+    input_data = ' '.join(map(str, select_random_pairs(edges, seed, n_pairs=1000)))
     # arg = str(reg_count)
     
     # estimate = run_java(jar, arg, input_data)
@@ -75,16 +92,16 @@ def benchmark():
     return estimate
 
 if __name__ == "__main__":
-    graph_file_path = os.path.join("denmark_new.graph")
-    output_pairs_path = os.path.join("random_pairs.txt")
+    graph_file_path = os.path.join("newdenmark.graph")
+    output_pairs_path = os.path.join("newrandom_pairs.txt")
 
     edges = read_graph(graph_file_path)
     if not edges:
         print("No edges found in the graph file.")
     else:
         # Generate random pairs using a fixed seed
-        seed = 42
-        random_pairs = generate_random_pairs(vertices, seed, n_pairs=1000)
+        seed = 420
+        random_pairs = select_random_pairs(vertices, seed, n_pairs=1000)
         
         # Save the pairs to a file
         save_pairs_to_file(random_pairs, output_pairs_path)

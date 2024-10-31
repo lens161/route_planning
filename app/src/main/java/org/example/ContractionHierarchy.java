@@ -21,7 +21,6 @@ public class ContractionHierarchy {
         this.rank = new int[graph.V()];
         Arrays.fill(rank, -1);
         this.contractionOrder = 0;
-        // this.threadLocalDijkstra = new Dijkstra2();
     }
 
     // Node class for priority queue
@@ -283,18 +282,18 @@ public class ContractionHierarchy {
             }
         }
     }
-
+    
     public int[] getRanks() {
         return rank;
     }
 
     public static void main(String[] args) throws IOException {
         // Replace with your graph file path
-        Graph graph = new Graph(new File("/home/knor/route/newdenmark.graph"));
+        Graph graph = new Graph(new File("/home/knor/route/route-planning/SmallTest.graph"));
 
         ContractionHierarchy ch = new ContractionHierarchy(graph);
 
         ch.preprocess();
-        ch.saveAugmentedGraph("augmented_graph_output.graph");
+        ch.saveAugmentedGraph("smalltest_augmented_graph_output.graph");
     }
 }

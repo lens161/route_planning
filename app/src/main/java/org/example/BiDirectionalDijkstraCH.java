@@ -2,7 +2,11 @@ package org.example;
 
 
 import java.io.*;
-import java.util.*;
+import java.util.Scanner;
+import java.util.Arrays;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.PriorityQueue;
 
 public class BiDirectionalDijkstraCH {
     private double[] distToForward;
@@ -133,9 +137,9 @@ public class BiDirectionalDijkstraCH {
 
     public static void main(String[] args) {
         System.out.println("d");
-        File graphFile = new File("/home/knor/route2/route-planning/app/src/main/newaug.graph");
-        File randomPairsFile = new File("/home/knor/route2/route-planning/app/src/main/resources/random_pairs.txt");
-        File outputFile = new File("/home/knor/route2/route-planning/app/src/main/resources/ch_bidirectional_dijkstra_results.csv");
+        File graphFile = new File("/Users/lennart/Documents/00_ITU/03_Sem03/02_Applied_Algorithms/Assignment3/route-planning/augmented_graph_output.graph");
+        File randomPairsFile = new File("/Users/lennart/Documents/00_ITU/03_Sem03/02_Applied_Algorithms/Assignment3/route-planning/random_pairs.txt");
+        File outputFile = new File("/Users/lennart/Documents/00_ITU/03_Sem03/02_Applied_Algorithms/Assignment3/route-planning/CHbidirectional_dijkstra_results.csv");
 
         try {
             // Load the graph

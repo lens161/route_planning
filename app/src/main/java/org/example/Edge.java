@@ -1,12 +1,13 @@
 package org.example;
 
-public class Edge implements Comparable<Edge> { 
 
-    private final int v; 
-    private final int w; 
+public class Edge implements Comparable<Edge> {
+
+    private final int v;
+    private final int w;
     private final double weight;
-    // the vertex the shortcut has been contracted from
-    // if not a shortcut c = -1;
+    // The vertex the shortcut has been contracted from
+    // If not a shortcut, c = -1
     public final int c;
 
     public Edge(int v, int w, double weight, int c) {
@@ -26,10 +27,9 @@ public class Edge implements Comparable<Edge> {
     }
 
     public int other(int vertexIndex) {
-        if      (vertexIndex == v) return w;
+        if (vertexIndex == v) return w;
         else if (vertexIndex == w) return v;
-        return vertexIndex;
-        // else throw new IllegalArgumentException("Illegal endpoint: " + vertexIndex);
+        else throw new IllegalArgumentException("Illegal endpoint: " + vertexIndex);
     }
 
     @Override
@@ -41,11 +41,15 @@ public class Edge implements Comparable<Edge> {
         return String.format("%d-%d %.5f %s", v, w, weight, c);
     }
 
-    public int V(){
+    public int V() {
         return v;
     }
 
-    public int W(){
+    public int W() {
         return w;
+    }
+
+    public boolean isShortcut() {
+        return c != -1;
     }
 }

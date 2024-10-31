@@ -18,12 +18,12 @@ public class routePlanner {
         // System.out.println(d1.runDijkstra(g, 17, 19));
         try {
 
-        File input1 = new File("/Users/lennart/Documents/00_ITU/03_Sem03/02_Applied_Algorithms/Assignment3/route-planning/augmented_graph_output.graph");
+        File input1 = new File("/home/knor/route2/route-planning/app/src/main/newdenmark.graph");
         Graph g = new Graph(input1);
         Dijkstra dijkstra = new Dijkstra();
-        File outputFile = new File("/Users/lennart/Documents/00_ITU/03_Sem03/02_Applied_Algorithms/Assignment3/route-planning/dijkstraresults_new.csv");
+        File outputFile = new File("/home/knor/route2/route-planning/app/src/main/resources/basic_dijkstra_results.csv");
 
-        File randomPairsFile = new File("/Users/lennart/Documents/00_ITU/03_Sem03/02_Applied_Algorithms/Assignment3/route-planning/random_pairs.txt");
+        File randomPairsFile = new File("/home/knor/route2/route-planning/app/src/main/newrandom_pairs.txt");
 
         try (PrintWriter writer = new PrintWriter(outputFile)) {
             writer.println("Source,Target,Distance,ExecutionTime");

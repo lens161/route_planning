@@ -148,7 +148,7 @@ public class BiDirectionalDijkstraCH {
     }
 
     public static void main(String[] args) {
-        System.out.println("d");
+        System.out.println("a");
         File graphFile = new File("/home/knor/route2/route-planning/app/src/main/newaug.graph");
         File randomPairsFile = new File("/home/knor/route2/route-planning/app/src/main/resources/random_pairs.txt");
         File outputFile = new File("/home/knor/route2/route-planning/app/src/main/resources/ch_bidirectional_dijkstra_results.csv");

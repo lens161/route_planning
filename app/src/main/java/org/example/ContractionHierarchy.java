@@ -284,6 +284,11 @@ public class ContractionHierarchy {
                 }
             }
         }
+
+    }
+
+    public int[] getRank() {
+        return rank;
     }
 
     public static void main(String[] args) throws IOException {

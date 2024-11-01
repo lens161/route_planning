@@ -21,7 +21,7 @@ public class routePlanner {
         File input1 = new File("/home/knor/route2/route-planning/app/src/main/newdenmark.graph");
         Graph g = new Graph(input1);
         Dijkstra dijkstra = new Dijkstra();
-        File outputFile = new File("/home/knor/route2/route-planning/app/src/main/resources/basic_dijkstra_results.csv");
+        File outputFile = new File("/home/knor/route2/route-planning/app/src/main/resources/2basic_dijkstra_results.csv");
 
         File randomPairsFile = new File("/home/knor/route2/route-planning/app/src/main/newrandom_pairs.txt");
 
@@ -39,8 +39,8 @@ public class routePlanner {
                 System.err.println("Invalid pair: " + pair);
                 continue;
             }
-            int s = g.getIndexForVertex(Long.parseLong(vertices[0]));
-            int t = g.getIndexForVertex(Long.parseLong(vertices[1]));
+            long s = Long.parseLong(vertices[0]);
+            long t = Long.parseLong(vertices[1]);
 
             long startTime = System.nanoTime();
             double distance = dijkstra.runDijkstra(g, s, t);

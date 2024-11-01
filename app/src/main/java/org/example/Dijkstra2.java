@@ -23,6 +23,7 @@ public class Dijkstra2 {
         settled = new HashSet<>();
         inQueue = new HashSet<>();
     }
+    
 
     public double runDijkstra2(Graph g, int s, int t, double maxDistance, int maxHops, int[] nodeRanks) {
         this.rank = nodeRanks;

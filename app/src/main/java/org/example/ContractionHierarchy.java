@@ -218,6 +218,7 @@ public class ContractionHierarchy {
         }
 
         // Collect neighbor pairs to process
+        // pairs are stored as arrays of size 2 where arr[0] = v and arr[1] = w
         List<int[]> neighborPairs = new ArrayList<>();
         for (int i = 0; i < neighborIndices.size(); i++) {
             int u = neighborIndices.get(i);
@@ -229,7 +230,23 @@ public class ContractionHierarchy {
             }
         }
 
-        // Process neighbor pairs in parallel
+        // non parallel implementation:
+        // for (int[] pair : neighborPairs) {
+        //     int u = pair[0];
+        //     int w = pair[1];
+        //     double shortcutWeight = neighbors.get(u).weight() + neighbors.get(w).weight();
+
+        //     // Limit witness search to a small number of hops
+        //     boolean hasWitness = witnessSearch(u, w, shortcutWeight, 10);
+
+        //     if (!hasWitness) {
+        //         Edge shortcut = new Edge(u, w, shortcutWeight, v);
+        //         // synchronized call to add graph edge to ensure mutual exclusion for concurrent operations by the stream.
+        //             graph.addEdge(shortcut);
+        //     }
+        // }
+
+        // Process neighbor pairs in parallell
         neighborPairs.parallelStream().forEach(pair -> {
             int u = pair[0];
             int w = pair[1];
@@ -240,6 +257,7 @@ public class ContractionHierarchy {
 
             if (!hasWitness) {
                 Edge shortcut = new Edge(u, w, shortcutWeight, v);
+                // synchronized call to add graph edge to ensure mutual exclusion for concurrent operations by the stream.
                 synchronized (graph) {
                     graph.addEdge(shortcut);
                 }
@@ -293,11 +311,11 @@ public class ContractionHierarchy {
 
     public static void main(String[] args) throws IOException {
         // Replace with your graph file path
-        Graph graph = new Graph(new File("/Users/lennart/Documents/00_ITU/03_Sem03/02_Applied_Algorithms/Assignment3/route-planning/denmark_newnew.graph"));
+        Graph graph = new Graph(new File("/Users/lennart/Documents/00_ITU/03_Sem03/02_Applied_Algorithms/Assignment3/route-planning/app/src/main/newdenmark.graph"));
 
         ContractionHierarchy ch = new ContractionHierarchy(graph);
 
         ch.preprocess();
-        ch.saveAugmentedGraph("augmented_graph_output.graph");
+        ch.saveAugmentedGraph("augmented_graph_output_1.graph");
     }
 }

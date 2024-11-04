@@ -66,22 +66,6 @@ public class Graph {
         sc.close();
     }
 
-    // // initialise Graph from preprocessed vertex and edge arrays
-    // public Graph(long[] vertices, Edge[] edges){
-    //     this.V = vertices.length;
-    //     this.E = edges.length;
-    //     vertexIdToIndexMap = new HashMap<>();
-    //     indexToVertexId = vertices;
-
-    //     for (int i = 0; i < V; i++) {
-    //         vertexIdToIndexMap.put(vertices[i], i);
-    //     }
-
-    //     for (Edge edge : edges) {
-    //         addEdge(edge);
-    //     }
-    // }
-
     public void addEdge(Edge e) {
         int v = e.either();
         int w = e.other(v);

@@ -10,7 +10,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
-public class ContractionHierarchyTest {
+public class PreprocessingTest {
 
     private Graph createGraph() throws FileNotFoundException {
         File graphFile = new File(getClass().getClassLoader().getResource("SmallTest.graph").getFile());
@@ -70,7 +70,7 @@ public class ContractionHierarchyTest {
 
         ch.preprocess();
 
-        String outputFilePath = "augmented_graph_output.graph";
+        String outputFilePath = "src/test/resources/augmented_small_test_graph_output.graph";
         try {
             ch.saveAugmentedGraph(outputFilePath);
             File outputFile = new File(outputFilePath);

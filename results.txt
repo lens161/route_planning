@@ -1,0 +1,14 @@
+fastC(newest heuristics):
+average contraction time: 5.654819186215953E-6
+total contracttion time:5.988758583
+
+fast:
+average contraction time: 6.872064694356954E-6
+total contracttion time:7.0997885
+added shortcuts: 556.038
+
+
+slow:
+average contraction time: 1.526001621879751E-5
+total contracttion time:11.5422235
+added shortcuts: 794.661

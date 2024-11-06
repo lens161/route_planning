@@ -51,6 +51,8 @@ public class BiDirectionalDijkstraCH {
             // Source or target vertex not found
             return -1;
         }
+        if(s==t)
+            return 0;
 
         distToForward[s] = 0.0;
         distToBackward[t] = 0.0;
@@ -73,14 +75,14 @@ public class BiDirectionalDijkstraCH {
                 int v = node.id;
                 if (!visitedForward[v]) {
                     visitedForward[v] = true;
-                    relaxEdgesCH(g, v, distToForward, edgeToForward, distToBackward, visitedForward, visitedBackward, pqForward, true);
+                    relaxEdgesCH(g, v, distToForward, edgeToForward, distToBackward, visitedBackward, visitedForward, pqForward, true);
                 }
             } else {
                 Node node = pqBackward.poll();
                 int v = node.id;
                 if (!visitedBackward[v]) {
                     visitedBackward[v] = true;
-                    relaxEdgesCH(g, v, distToBackward, edgeToBackward, distToForward, visitedBackward, visitedForward, pqBackward, false);
+                    relaxEdgesCH(g, v, distToBackward, edgeToBackward, distToForward, visitedForward, visitedBackward, pqBackward, false);
                 }
             }
         }
@@ -93,11 +95,11 @@ public class BiDirectionalDijkstraCH {
                               boolean[] visitedOppositeDirection, PriorityQueue<Node> pq, boolean isForward) {
         for (EdgeCh e : g.adj(v)) {
             int w = e.other(v);
-            relaxedEdgesCount++;
-
+            
             // Ensure only higher rank neighbors are expanded in CH
-            if (isForward && nodeRank[w] < nodeRank[v]) continue;
-            if (!isForward && nodeRank[w] < nodeRank[v]) continue;
+            if (nodeRank[w] < nodeRank[v]) continue;
+            // if (!isForward && nodeRank[w] < nodeRank[v]) continue;
+            relaxedEdgesCount++;
 
             // Relax edge
             if (distTo[w] > distTo[v] + e.weight()) {
@@ -106,7 +108,7 @@ public class BiDirectionalDijkstraCH {
                 pq.add(new Node(w, distTo[w]));  // Add updated distance
 
                 // Check for a meeting point
-                if (visitedOppositeDirection[w]) {
+                if (visitedOppositeDirection[v]) {
                     double potentialBestDistance = distTo[w] + oppositeDistTo[w];
                     if (potentialBestDistance < bestPathDistance) {
                         bestPathDistance = potentialBestDistance;
@@ -136,10 +138,9 @@ public class BiDirectionalDijkstraCH {
     }
 
     public static void main(String[] args) {
-        System.out.println("a");
-        File graphFile = new File("/home/knor/route2/route-planning/app/src/main/newaug.graph");
-        File randomPairsFile = new File("/home/knor/route2/route-planning/app/src/main/resources/random_pairs.txt");
-        File outputFile = new File("/home/knor/route2/route-planning/app/src/main/resources/01ch_bidirectional_dijkstra_results.csv");
+        File graphFile = new File("/Users/lennart/Documents/00_ITU/03_Sem03/02_Applied_Algorithms/Assignment3/route-planning/app/src/test/resources/augmented_graph_output.graph");
+        File randomPairsFile = new File("/Users/lennart/Documents/00_ITU/03_Sem03/02_Applied_Algorithms/Assignment3/route-planning/app/src/test/resources/pairs.txt");
+        File outputFile = new File("/Users/lennart/Documents/00_ITU/03_Sem03/02_Applied_Algorithms/Assignment3/route-planning/app/src/main/resources/debug_bidirectional_dijkstra_results_slow.csv");
 
         try {
             // Load the graph

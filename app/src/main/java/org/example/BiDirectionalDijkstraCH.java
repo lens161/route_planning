@@ -29,6 +29,8 @@ public class BiDirectionalDijkstraCH {
     }
 
     public double runBiDirectionalCHDijkstra(GraphCh g, long sVertexId, long tVertexId) {
+        boolean lastforward = false;
+        boolean lastbackwards = false;
         this.relaxedEdgesCount = 0;
         this.bestPathDistance = Double.POSITIVE_INFINITY;
         this.meetingPoint = -1;
@@ -75,16 +77,37 @@ public class BiDirectionalDijkstraCH {
                 int v = node.id;
                 if (!visitedForward[v]) {
                     visitedForward[v] = true;
-                    relaxEdgesCH(g, v, distToForward, edgeToForward, distToBackward, visitedBackward, visitedForward, pqForward, true);
+                    relaxEdgesCH(g, v, distToForward, edgeToForward, distToBackward, visitedForward, visitedBackward, pqForward, true);
                 }
             } else {
                 Node node = pqBackward.poll();
                 int v = node.id;
                 if (!visitedBackward[v]) {
                     visitedBackward[v] = true;
-                    relaxEdgesCH(g, v, distToBackward, edgeToBackward, distToForward, visitedForward, visitedBackward, pqBackward, false);
+                    relaxEdgesCH(g, v, distToBackward, edgeToBackward, distToForward, visitedBackward, visitedForward, pqBackward, false);
                 }
             }
+
+            // every other way
+            // if (lastbackwards&&lastforward == false || lastbackwards == true) {
+            //     Node node = pqForward.poll();
+            //     int v = node.id;
+            //     lastforward = true;
+            //     lastbackwards = false;
+            //         if (!visitedForward[v]) {
+            //             visitedForward[v] = true;
+            //         relaxEdgesCH(g, v, distToForward, edgeToForward, distToBackward, visitedForward, visitedBackward, pqForward, true);
+            //     }
+            // } else {
+            //     Node node = pqBackward.poll();
+            //     int v = node.id;
+            //     lastbackwards = true;
+            //     lastforward = false;
+            //     if (!visitedBackward[v]) {
+            //         visitedBackward[v] = true;
+            //         relaxEdgesCH(g, v, distToBackward, edgeToBackward, distToForward, visitedBackward, visitedForward, pqBackward, false);
+            //     }
+            // }
         }
 
         return bestPathDistance == Double.POSITIVE_INFINITY ? -1 : bestPathDistance;
@@ -97,10 +120,12 @@ public class BiDirectionalDijkstraCH {
             int w = e.other(v);
             
             // Ensure only higher rank neighbors are expanded in CH
-            if (nodeRank[w] < nodeRank[v]) continue;
-            // if (!isForward && nodeRank[w] < nodeRank[v]) continue;
+            if (isForward && nodeRank[w] < nodeRank[v]) continue;
+            // if (!isForward && nodeRank[v] < nodeRank[w]) continue;
             relaxedEdgesCount++;
 
+
+            
             // Relax edge
             if (distTo[w] > distTo[v] + e.weight()) {
                 distTo[w] = distTo[v] + e.weight();
@@ -108,7 +133,7 @@ public class BiDirectionalDijkstraCH {
                 pq.add(new Node(w, distTo[w]));  // Add updated distance
 
                 // Check for a meeting point
-                if (visitedOppositeDirection[v]) {
+                if (visitedOppositeDirection[w]) {
                     double potentialBestDistance = distTo[w] + oppositeDistTo[w];
                     if (potentialBestDistance < bestPathDistance) {
                         bestPathDistance = potentialBestDistance;
@@ -138,9 +163,9 @@ public class BiDirectionalDijkstraCH {
     }
 
     public static void main(String[] args) {
-        File graphFile = new File("/Users/lennart/Documents/00_ITU/03_Sem03/02_Applied_Algorithms/Assignment3/route-planning/app/src/test/resources/augmented_graph_output.graph");
-        File randomPairsFile = new File("/Users/lennart/Documents/00_ITU/03_Sem03/02_Applied_Algorithms/Assignment3/route-planning/app/src/test/resources/pairs.txt");
-        File outputFile = new File("/Users/lennart/Documents/00_ITU/03_Sem03/02_Applied_Algorithms/Assignment3/route-planning/app/src/main/resources/debug_bidirectional_dijkstra_results_slow.csv");
+        File graphFile = new File("/home/knor/route3/route-planning/06augmented_graph");
+        File randomPairsFile = new File("/home/knor/route3/route-planning/random_pairs.txt");
+        File outputFile = new File("/home/knor/route3/route-planning/06ch_results.csv");
 
         try {
             // Load the graph

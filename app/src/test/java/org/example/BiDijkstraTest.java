@@ -68,4 +68,13 @@ public class BiDijkstraTest {
 
         dijkstra.runBiDirectionalDijkstra(graph, 10, 99);
     }
+
+    @Test
+    public void testForSymmetry() throws FileNotFoundException{
+        Graph graph = createGraph();
+        BiDirectionalDijkstra dijkstra = new BiDirectionalDijkstra();
+
+        dijkstra.verifySymmetry(graph);
+    }
+
 }

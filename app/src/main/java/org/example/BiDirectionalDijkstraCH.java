@@ -51,7 +51,7 @@ public class BiDirectionalDijkstraCH {
             // Source or target vertex not found
             return -1;
         }
-        if(s==t)
+        if (s == t)
             return 0;
 
         distToForward[s] = 0.0;
@@ -63,45 +63,52 @@ public class BiDirectionalDijkstraCH {
         pqForward.add(new Node(s, distToForward[s]));
         pqBackward.add(new Node(t, distToBackward[t]));
 
-        boolean isSourceHighestRank = isHighRankNode(s); // Check if source has highest rank
-        boolean isTargetHighestRank = isHighRankNode(t); // Check if target has highest rank
-
+        boolean directionIsForward = true; // r = true (forward)
 
         while (!pqForward.isEmpty() || !pqBackward.isEmpty()) {
-            // Termination condition modified to handle highest-ranked source/target
-            if ((pqForward.isEmpty() || pqBackward.isEmpty()) 
-                && (bestPathDistance != Double.POSITIVE_INFINITY) 
-                && !(isSourceHighestRank && pqBackward.isEmpty()) 
-                && !(isTargetHighestRank && pqForward.isEmpty())) {
+            double minForward = pqForward.isEmpty() ? Double.POSITIVE_INFINITY : pqForward.peek().dist;
+            double minBackward = pqBackward.isEmpty() ? Double.POSITIVE_INFINITY : pqBackward.peek().dist;
+
+            if (bestPathDistance <= Math.min(minForward, minBackward)) {
                 break;
             }
-    
-            // Decide which direction to expand
-            if (!pqForward.isEmpty() && (pqBackward.isEmpty() || pqForward.peek().dist <= pqBackward.peek().dist)) {
-                Node node = pqForward.poll();
-                int v = node.id;
-    
-                // Check if node 'v' has the highest rank and skip if so (unless it’s the source)
-                if (isHighRankNode(v) && !hasHigherRankedEdges(g, v, true) && v != s) {
-                    continue;
+
+            // Switch direction if the other queue is not empty
+            if ((directionIsForward && !pqBackward.isEmpty()) || (!directionIsForward && !pqForward.isEmpty())) {
+                directionIsForward = !directionIsForward;
+            }
+
+            if (directionIsForward) {
+                if (!pqForward.isEmpty()) {
+                    Node node = pqForward.poll();
+                    int u = node.id;
+                    if (!visitedForward[u]) {
+                        visitedForward[u] = true;
+
+                        // Update bestPathDistance
+                        if (distToForward[u] + distToBackward[u] < bestPathDistance) {
+                            bestPathDistance = distToForward[u] + distToBackward[u];
+                            meetingPoint = u;
+                        }
+
+                        relaxEdgesCH(g, u, distToForward, edgeToForward, pqForward, true);
+                    }
                 }
-    
-                if (!visitedForward[v]) {
-                    visitedForward[v] = true;
-                    relaxEdgesCH(g, v, distToForward, edgeToForward, distToBackward, visitedBackward, visitedForward, pqForward, true);
-                }
-            } else if (!pqBackward.isEmpty()) {
-                Node node = pqBackward.poll();
-                int v = node.id;
-    
-                // Allow expansion for the target node even if it's the highest rank
-                if (isHighRankNode(v) && !hasHigherRankedEdges(g, v, false) && v != t) {
-                    continue;
-                }
-    
-                if (!visitedBackward[v]) {
-                    visitedBackward[v] = true;
-                    relaxEdgesCH(g, v, distToBackward, edgeToBackward, distToForward, visitedForward, visitedBackward, pqBackward, false);
+            } else {
+                if (!pqBackward.isEmpty()) {
+                    Node node = pqBackward.poll();
+                    int u = node.id;
+                    if (!visitedBackward[u]) {
+                        visitedBackward[u] = true;
+
+                        // Update bestPathDistance
+                        if (distToForward[u] + distToBackward[u] < bestPathDistance) {
+                            bestPathDistance = distToForward[u] + distToBackward[u];
+                            meetingPoint = u;
+                        }
+
+                        relaxEdgesCH(g, u, distToBackward, edgeToBackward, pqBackward, false);
+                    }
                 }
             }
         }
@@ -109,41 +116,25 @@ public class BiDirectionalDijkstraCH {
         return bestPathDistance == Double.POSITIVE_INFINITY ? -1 : bestPathDistance;
     }
 
-    private void relaxEdgesCH(GraphCh g, int v, double[] distTo, EdgeCh[] edgeTo,
-                              double[] oppositeDistTo, boolean[] visitedThisDirection,
-                              boolean[] visitedOppositeDirection, PriorityQueue<Node> pq, boolean isForward) {
-        for (EdgeCh e : g.adj(v)) {
-            int w = e.other(v);
+    private void relaxEdgesCH(GraphCh g, int u, double[] distTo, EdgeCh[] edgeTo,
+                        PriorityQueue<Node> pq, boolean isForward) {
+    for (EdgeCh e : g.adj(u)) {
+        int v = e.other(u); // Get the neighbor node, treating as undirected
 
-            // Ensure only higher rank neighbors are expanded in CH
-            if (nodeRank[w] < nodeRank[v]) {
-                //System.out.println(nodeRank[w] + " is lower than " + nodeRank[v]); 
-                continue;}
-            
-            relaxedEdgesCount++;
+        // Ensure only neighbors with higher ranks are considered for relaxation
+        if (nodeRank[v] < nodeRank[u]) continue;
 
-            // Relax edge
-            if (distTo[w] > distTo[v] + e.weight()) {
-                distTo[w] = distTo[v] + e.weight();
-                edgeTo[w] = e;
-                pq.add(new Node(w, distTo[w]));  // Add updated distance
+        relaxedEdgesCount++;
 
-                // Check for a meeting point
-                if (visitedOppositeDirection[v]) {
-                    double potentialBestDistance = distTo[w] + oppositeDistTo[w];
-                    if (potentialBestDistance < bestPathDistance) {
-                        bestPathDistance = potentialBestDistance;
-                        meetingPoint = w;
-                    }
-                    //System.out.println("Forward visited node: " + v);
-                    //System.out.println("Backwards visited node: " + w);
-                }
-                
-                //System.out.printf("Relaxing edge: %d -> %d with distance %.2f\n", v, w, distTo[w]);
-
-            }
+        // Relax edge in the current direction
+        if (distTo[v] > distTo[u] + e.weight()) {
+            distTo[v] = distTo[u] + e.weight();
+            edgeTo[v] = e;
+            pq.add(new Node(v, distTo[v]));
         }
     }
+}
+
 
     public int getRelaxedEdgesCount() {
         return relaxedEdgesCount;

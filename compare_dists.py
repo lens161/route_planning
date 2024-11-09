@@ -19,6 +19,8 @@ def compare_csv_files(file1, file2):
         file1_data = {}
         file2_data = {}
 
+        mismatch_lens = {}
+
         # Read data from the first file
         for row in reader1:
             # Skip rows that are empty or don't have enough columns
@@ -55,15 +57,21 @@ def compare_csv_files(file1, file2):
                 if file1_data[key] == -1 or file2_data[key] == -1:
                     minus1_count += 1
                     print(f"Minus one found: Source={key[0]}, Target={key[1]}, "
-                          f"Distance Bi-Dijkstra={file1_data[key]}, Distance Dijkstra={file2_data[key]}")
+                        f"Distance CH-Bi-Dijkstra={file1_data[key]}, Distance Dijkstra={file2_data[key]}")
                 if file1_data[key] != file2_data[key]:
+                    difference = file1_data[key] - file2_data[key]
+                    if difference not in mismatch_lens:
+                        mismatch_lens[difference] = 0
+                    mismatch_lens[difference] += 1
                     print(f"Mismatch found: Source={key[0]}, Target={key[1]}, "
-                          f"Distance Bi-Dijkstra={file1_data[key]}, Distance Dijkstra={file2_data[key]}, Difference = {file1_data[key] - file2_data[key]}")
+                        f"Distance CH-Bi-Dijkstra={file1_data[key]}, Distance Dijkstra={file2_data[key]}, Difference = {difference}")
                     mismatch_count += 1
 
         # Output the result
         print(f"\nTotal mismatches: {mismatch_count}")
-        print(f"\nTotal instances of -1: {minus1_count}")
+        print(f"\nTotal instances of -1: {minus1_count}\n")
+        for diff in sorted(mismatch_lens):
+            print(f'{mismatch_lens.get(diff)} instances of difference {diff}')
 
 
 # Example usage

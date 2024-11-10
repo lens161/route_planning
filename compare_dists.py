@@ -76,6 +76,6 @@ def compare_csv_files(file1, file2):
 
 # Example usage
 #file1 = '/home/najj/applied_algo/route-planning/app/src/main/resources/naja_debug2_bidirectional_dijkstra_results.csv'
-file1 = '/home/najj/applied_algo/route-planning/app/src/main/resources/naja_debug2_CHbidijkstra_results.csv'
-file2 = '/home/najj/applied_algo/route-planning/app/src/main/resources/naja_debug_dijkstra_results_slow.csv'
+file1 = '/home/knor/AA/route4/route-planning/dijkstra_results.csv'
+file2 = '/home/knor/AA/route4/route-planning/app/src/main/resources/kris_debug2_CHbidijkstra_results.csv'
 compare_csv_files(file1, file2)

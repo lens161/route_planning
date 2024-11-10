@@ -160,14 +160,14 @@ public class BiDirectionalDijkstra {
     }
     
 
-//     public static void main(String[] args) throws FileNotFoundException {
-//         File input1 = new File("/Users/lennart/Documents/00_ITU/03_Sem03/02_Applied_Algorithms/Assignment3/route-planning/denmark.graph");
-//         Graph g = new Graph(input1);
-//         BiDirectionalDijkstra dijkstra = new BiDirectionalDijkstra();
+    // public static void main(String[] args) throws FileNotFoundException {
+    //     File input1 = new File("/home/knor/AA/route4/route-planning/app/src/main/newdenmark.graph");
+    //     Graph g = new Graph(input1);
+    //     BiDirectionalDijkstra dijkstra = new BiDirectionalDijkstra();
 
-//         long start = System.nanoTime();
-//         System.out.println(dijkstra.runBiDirectionalDijkstra(g, 47021985,2064649066));
-//         long end = System.nanoTime();
-//         System.out.println((end - start));
-//     }
+    //     long start = System.nanoTime();
+    //     System.out.println(dijkstra.runBiDirectionalDijkstra(g, 47021985,2064649066));
+    //     long end = System.nanoTime();
+    //     System.out.println((end - start));
+    // }
 }

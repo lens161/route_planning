@@ -122,7 +122,7 @@ public class BiDirectionalDijkstraCH {
         int v = e.other(u); // Get the neighbor node, treating as undirected
 
         // Ensure only neighbors with higher ranks are considered for relaxation
-        if (nodeRank[v] < nodeRank[u]) continue;
+        if (isForward && nodeRank[v] < nodeRank[u]) continue;
 
         relaxedEdgesCount++;
 
@@ -171,10 +171,11 @@ public class BiDirectionalDijkstraCH {
         return false;
     }
 
+
     public static void main(String[] args) {
-        File graphFile = new File("/home/najj/applied_algo/route-planning/app/src/main/newaug.graph");
-        File randomPairsFile = new File("/home/najj/applied_algo/route-planning/app/src/main/newrandom_pairs.txt");
-        File outputFile = new File("/home/najj/applied_algo/route-planning/app/src/main/resources/naja_debug2_CHbidijkstra_results.csv");
+        File graphFile = new File("/home/knor/AA/route4/route-planning/app/src/main/newaug.graph2");
+        File randomPairsFile = new File("/home/knor/AA/route4/route-planning/random_pairs.txt");
+        File outputFile = new File("/home/knor/AA/route4/route-planning/app/src/main/resources/kris_debug2_CHbidijkstra_results.csv");
 
         try {
             // Load the graph
@@ -214,16 +215,23 @@ public class BiDirectionalDijkstraCH {
                     // Clear the BiDirectionalDijkstraCH instance for the next pair
                     biDijkstra.clear();
                 }
+                // DEBUG
+                // long s1 = 73206082;
+                // long s2 = 1926705245;
+                // biDijkstra.runBiDirectionalCHDijkstra(graph, s1 , s2 );
+                
+                // List<Long> path = biDijkstra.getPath();
+                // System.out.println("Path vertices: " + path);
 
-                // Calculate and print averages
-                double averageExecutionTime = totalExecutionTime / (numberOfPairs * 1_000_000_000.0);
-                double averageRelaxedEdges = (double) totalRelaxedEdges / numberOfPairs;
+                // // Calculate and print averages
+                // double averageExecutionTime = totalExecutionTime / (numberOfPairs * 1_000_000_000.0);
+                // double averageRelaxedEdges = (double) totalRelaxedEdges / numberOfPairs;
 
-                // Write averages to the console and file
-                System.out.println("Average Execution Time: " + averageExecutionTime + " seconds");
-                System.out.println("Average Relaxed Edges: " + averageRelaxedEdges);
-                writer.println("Average Execution Time," + averageExecutionTime + " seconds");
-                writer.println("Average Relaxed Edges," + averageRelaxedEdges);
+                // // Write averages to the console and file
+                // System.out.println("Average Execution Time: " + averageExecutionTime + " seconds");
+                // System.out.println("Average Relaxed Edges: " + averageRelaxedEdges);
+                // writer.println("Average Execution Time," + averageExecutionTime + " seconds");
+                // writer.println("Average Relaxed Edges," + averageRelaxedEdges);
             }
 
             System.out.println("Bidirectional CH Dijkstra results saved to " + outputFile.getPath());

@@ -20,12 +20,12 @@ public class Main {
 
         switch (alg) {
             case "contract":
-                Graph graph = new Graph(new File("/Users/lennart/Documents/00_ITU/03_Sem03/02_Applied_Algorithms/Assignment3/route-planning/newdenmark.graph"));
+                Graph graph = new Graph(new File("newdenmark.graph"));
 
                 ContractionHierarchy ch = new ContractionHierarchy(graph);
         
                 ch.preprocess();
-                ch.saveAugmentedGraph("/Users/lennart/Documents/00_ITU/03_Sem03/02_Applied_Algorithms/Assignment3/route-planning/augmented_graph_output_fast.graph");
+                ch.saveAugmentedGraph("augmented.graph");
                 break;
             case "dijkstra":
                 runDijkstra();
@@ -44,12 +44,12 @@ public class Main {
     }
     public static void runDijkstra(){
         try {
-            File input1 = new File("/Users/lennart/Documents/00_ITU/03_Sem03/02_Applied_Algorithms/Assignment3/route-planning/newdenmark.graph");
+            File input1 = new File("newdenmark.graph");
             Graph g = new Graph(input1);
             Dijkstra dijkstra = new Dijkstra();
-            File outputFile = new File("/Users/lennart/Documents/00_ITU/03_Sem03/02_Applied_Algorithms/Assignment3/route-planning/dijkstra_results.csv");
+            File outputFile = new File("dijkstra_results.csv");
     
-            File randomPairsFile = new File("/Users/lennart/Documents/00_ITU/03_Sem03/02_Applied_Algorithms/Assignment3/route-planning/random_pairs.txt");
+            File randomPairsFile = new File("random_pairs.txt");
     
             try (PrintWriter writer = new PrintWriter(outputFile)) {
                 writer.println("Source,Target,Distance,ExecutionTime");
@@ -75,14 +75,14 @@ public class Main {
                 long duration = endTime - startTime;
                 totalExecutionTime += duration;
     
-                int relaxedEdges = dijkstra.getRelaxedEdgesCount();
+                long relaxedEdges = dijkstra.getRelaxedEdgesCount();
                 totalRelaxedEdges += relaxedEdges;
     
                 
                 writer.println(s + "," + t + "," + distance + "," + duration);
                 writer.flush();
     
-                // dijkstra.clear();
+                dijkstra.clear();
                 // System.out.println("Distance from " + s + " to " + t + ": " + distance);
                 
                 // System.out.println("\nAverage running time: " + averageExecutionTime + " nanoseconds");
@@ -94,6 +94,9 @@ public class Main {
     
             writer.println("Average Execution Time," + averageExecutionTime + " seconds");
             writer.println("Average Relaxed Edges," + averageRelaxedEdges);
+
+            System.out.println("Dijkstra results saved to " + outputFile.getPath());
+
             } catch (NumberFormatException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
@@ -103,18 +106,19 @@ public class Main {
             e.printStackTrace();
         }
     }
+
     public static void runBiDirectionalDijkstra() throws FileNotFoundException{
-        File graphFile = new File("/Users/lennart/Documents/00_ITU/03_Sem03/02_Applied_Algorithms/Assignment3/route-planning/newdenmark.graph");
+        File graphFile = new File("newdenmark.graph");
         Graph g = new Graph(graphFile);
 
-        File randomPairsFile = new File("/Users/lennart/Documents/00_ITU/03_Sem03/02_Applied_Algorithms/Assignment3/route-planning/random_pairs.txt");
+        File randomPairsFile = new File("random_pairs.txt");
         if (!randomPairsFile.exists()) {
             System.err.println("The random pairs file does not exist.");
             return;
         }
 
         BiDirectionalDijkstra biDijkstra = new BiDirectionalDijkstra();
-        File outputFile = new File("/Users/lennart/Documents/00_ITU/03_Sem03/02_Applied_Algorithms/Assignment3/route-planning/bi_dijkstra_results.csv");
+        File outputFile = new File("bidijkstra_results.csv");
 
         try (PrintWriter writer = new PrintWriter(outputFile)) {
             writer.println("Source,Target,Distance,ExecutionTime");
@@ -164,15 +168,18 @@ public class Main {
             writer.println("Average Execution Time," + averageExecutionTime + " seconds");
             writer.println("Average Relaxed Edges," + averageRelaxedEdges);
 
+            System.out.println("Bidirectional Dijkstra results saved to " + outputFile.getPath());
+
         } catch (IOException | NumberFormatException e) {
             System.err.println("An unexpected error occurred: " + e.getMessage());
             e.printStackTrace();
         }
     }
+
     public static void runCHBiDisjkstra(){
-        File graphFile = new File("/Users/lennart/Documents/00_ITU/03_Sem03/02_Applied_Algorithms/Assignment3/route-planning/augmented_graph_output_fast.graph");
-        File randomPairsFile = new File("/Users/lennart/Documents/00_ITU/03_Sem03/02_Applied_Algorithms/Assignment3/route-planning/random_pairs.txt");
-        File outputFile = new File("/Users/lennart/Documents/00_ITU/03_Sem03/02_Applied_Algorithms/Assignment3/route-planning/ch_results.csv");
+        File graphFile = new File("augmented.graph");
+        File randomPairsFile = new File("random_pairs.txt");
+        File outputFile = new File("ch_results.csv");
 
         try {
             // Load the graph

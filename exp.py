@@ -5,6 +5,7 @@ import subprocess
 TIMEOUT = 150
 SEED = 42
 
+print("if contract has never been run before, run contract before running 'b' or 'ch' pls :)")
 argument = input("contract or benchmark - c(contract), b(benchmark all), di(bench. djik.), bi(bench. BiDijk), ch(bench. CH): ")
 
 def read_graph(graph_path):

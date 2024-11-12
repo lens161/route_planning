@@ -10,17 +10,17 @@ import java.io.PrintWriter;
 public class biRoutePlanner2 {
 
     public static void main(String[] args) throws IOException {
-        File graphFile = new File("/home/knor/AA/route4/route-planning/app/src/main/newdenmark.graph");
+        File graphFile = new File("newdenmark.graph");
         Graph g = new Graph(graphFile);
 
-        File randomPairsFile = new File("/home/knor/AA/route4/route-planning/app/src/main/newrandom_pairs.txt");
+        File randomPairsFile = new File("random_pairs.txt");
         if (!randomPairsFile.exists()) {
             System.err.println("The random pairs file does not exist.");
             return;
         }
 
         BiDirectionalDijkstra biDijkstra = new BiDirectionalDijkstra();
-        File outputFile = new File("/home/knor/AA/route4/route-planning/app/src/main/resources/kris_debug2_bidijkstra_results.csv");
+        File outputFile = new File("bidijkstra_results.csv");
 
         try (PrintWriter writer = new PrintWriter(outputFile)) {
             writer.println("Source,Target,Distance,ExecutionTime");
@@ -65,7 +65,7 @@ public class biRoutePlanner2 {
             double averageExecutionTime = totalExecutionTime / (numberOfPairs * 1_000_000_000.0); 
             double averageRelaxedEdges = (double) totalRelaxedEdges / numberOfPairs;
             System.out.println("Average Execution Time: " + averageExecutionTime + " seconds");
-            System.out.println("Average Relaxed Edges: " + averageRelaxedEdges);
+            System.out.println("Average Relaxed Edges: " + (-averageRelaxedEdges));
 
             writer.println("Average Execution Time," + averageExecutionTime + " seconds");
             writer.println("Average Relaxed Edges," + averageRelaxedEdges);

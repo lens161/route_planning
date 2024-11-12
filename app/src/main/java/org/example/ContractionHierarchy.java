@@ -323,11 +323,11 @@ public class ContractionHierarchy {
 
     public static void main(String[] args) throws IOException {
         // Replace with your graph file path
-        Graph graph = new Graph(new File("/home/knor/AA/route4/route-planning/app/src/main/newdenmark.graph"));
+        Graph graph = new Graph(new File("newdenmark.graph"));
 
         ContractionHierarchy ch = new ContractionHierarchy(graph);
 
         ch.preprocess();
-        ch.saveAugmentedGraph("/home/knor/AA/route4/route-planning/app/src/main/newaug3.graph");
+        ch.saveAugmentedGraph("aug.graph");
     }
 }

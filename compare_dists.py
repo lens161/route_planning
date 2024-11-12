@@ -1,29 +1,24 @@
 import csv
 
 def compare_csv_files(file1, file2):
-    # Open both CSV files for reading
+
     with open(file1, 'r') as f1, open(file2, 'r') as f2:
         reader1 = csv.reader(f1)
         reader2 = csv.reader(f2)
 
-        # Skip the header row in both files
         next(reader1)
         next(reader2)
 
-        # Initialize counter for mismatches
         mismatch_count = 0
 
         minus1_count=0
 
-        # Create dictionaries to store source-target as key and distance as value
         file1_data = {}
         file2_data = {}
 
         mismatch_lens = {}
 
-        # Read data from the first file
         for row in reader1:
-            # Skip rows that are empty or don't have enough columns
             if len(row) < 3:
                 print(f"Skipping malformed row in file1: {row}")
                 continue
@@ -36,9 +31,7 @@ def compare_csv_files(file1, file2):
                 continue
             file1_data[(source, target)] = distance
 
-        # Read data from the second file
         for row in reader2:
-            # Skip rows that are empty or don't have enough columns
             if len(row) < 3:
                 print(f"Skipping malformed row in file2: {row}")
                 continue
@@ -51,7 +44,6 @@ def compare_csv_files(file1, file2):
                 continue
             file2_data[(source, target)] = distance
 
-        # Compare the distances for the same source-target pairs
         for key in file1_data:
             if key in file2_data:
                 if file1_data[key] == -1 or file2_data[key] == -1:
@@ -74,7 +66,6 @@ def compare_csv_files(file1, file2):
             print(f'{mismatch_lens.get(diff)} instances of difference {diff}')
 
 
-# Example usage
 #file1 = '/home/najj/applied_algo/route-planning/app/src/main/resources/naja_debug2_bidirectional_dijkstra_results.csv'
 file1 = '/home/knor/AA/route4/route-planning/dijkstra_results.csv'
 file2 = '/home/knor/AA/route4/route-planning/app/src/main/resources/kris_debug2_CHbidijkstra_results.csv'

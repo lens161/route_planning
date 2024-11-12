@@ -2,16 +2,15 @@ package org.example;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.PriorityQueue;
 import java.util.Stack;
 import java.util.Vector;
-
-import edu.princeton.cs.algs4.IndexMinPQ;
 
 public class Dijkstra {
     private double[] distTo;         
     private Edge[] edgeTo;            
-    private IndexMinPQ<Double> pq;    
-    private int relaxedEdgesCount;    
+    private PriorityQueue<Node> pq;    
+    private long relaxedEdgesCount;    
 
     public Dijkstra() {
 
@@ -33,13 +32,12 @@ public class Dijkstra {
             distTo[i] = Double.POSITIVE_INFINITY;
         }
         distTo[start] = 0.0;
-
         
-        pq = new IndexMinPQ<>(vertexCount);
-        pq.insert(start, distTo[start]);
+        pq = new PriorityQueue<>();
+        pq.add(new Node(start, distTo[start]));
 
         while (!pq.isEmpty()) {
-            int v = pq.delMin();
+            int v = pq.poll().id;
             if (v == target) break;  
             for (Edge e : g.adj(v)) {
                 relax(e, v);
@@ -55,11 +53,12 @@ public class Dijkstra {
         if (distTo[w] > distTo[v] + e.weight()) {
             distTo[w] = distTo[v] + e.weight();
             edgeTo[w] = e;
-            if (pq.contains(w)) {
-                pq.decreaseKey(w, distTo[w]);
-            } else {
-                pq.insert(w, distTo[w]);
-            }
+            pq.add(new Node(w, distTo(w)));
+            // if (pq.contains(w)) {
+            //     pq.decreaseKey(w, distTo[w]);
+            // } else {
+            //     pq.insert(w, distTo[w]);
+            // }
         }
         relaxedEdgesCount++;
     }
@@ -95,7 +94,7 @@ public class Dijkstra {
         }
     }
 
-    public int getRelaxedEdgesCount() {
+    public long getRelaxedEdgesCount() {
         return relaxedEdgesCount;
     }
 

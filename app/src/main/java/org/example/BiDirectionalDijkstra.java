@@ -2,9 +2,8 @@ package org.example;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-
-import edu.princeton.cs.algs4.IndexMinPQ;
 import java.util.Arrays;
+import java.util.PriorityQueue;
 
 public class BiDirectionalDijkstra {
     private double[] distToForward;
@@ -14,8 +13,8 @@ public class BiDirectionalDijkstra {
     private boolean[] visitedForward;
     private boolean[] visitedBackward;
     private int[] hopTo;
-    private IndexMinPQ<Double> pqForward;
-    private IndexMinPQ<Double> pqBackward;
+    private PriorityQueue<Node> pqForward;
+    private PriorityQueue<Node> pqBackward;
     private int relaxedEdgesCount;
 
     private double bestPathDistance;
@@ -49,29 +48,33 @@ public class BiDirectionalDijkstra {
         distToForward[s] = 0.0;
         distToBackward[t] = 0.0;
 
-        pqForward = new IndexMinPQ<>(V);
-        pqBackward = new IndexMinPQ<>(V);
+        pqForward = new PriorityQueue<>();
+        pqBackward = new PriorityQueue<>();
 
-        pqForward.insert(s, distToForward[s]);
-        pqBackward.insert(t, distToBackward[t]);
+        Node start = new Node(s, distToForward[s]);
+        Node target = new Node(t, distToBackward[t]);
+        pqForward.add(start);
+        pqBackward.add(target);
 
         while (!pqForward.isEmpty() && !pqBackward.isEmpty()) {
             // Termination condition
-            double minDistForward = distToForward[pqForward.minIndex()];
-            double minDistBackward = distToBackward[pqBackward.minIndex()];
+            int minForward = pqForward.peek().id;
+            int minBackward = pqBackward.peek().id;
+            double minDistForward = distToForward[minForward];
+            double minDistBackward = distToBackward[minBackward];
             if (minDistForward + minDistBackward >= bestPathDistance) {
                 break;
             }
 
             // Decide which direction to expand
             if (minDistForward <= minDistBackward) {
-                int v = pqForward.delMin();
+                int v = pqForward.poll().id;
                 if (!visitedForward[v]) {
                     visitedForward[v] = true;
                     relaxEdges(g, v, distToForward, edgeToForward, distToBackward, visitedForward, visitedBackward, pqForward);
                 }
             } else {
-                int v = pqBackward.delMin();
+                int v = pqBackward.poll().id;
                 if (!visitedBackward[v]) {
                     visitedBackward[v] = true;
                     relaxEdges(g, v, distToBackward, edgeToBackward, distToForward, visitedBackward, visitedForward, pqBackward);
@@ -84,7 +87,7 @@ public class BiDirectionalDijkstra {
  
     private void relaxEdges(Graph g, int v, double[] distTo, Edge[] edgeTo,
                             double[] oppositeDistTo, boolean[] visitedThisDirection,
-                            boolean[] visitedOppositeDirection, IndexMinPQ<Double> pq) {
+                            boolean[] visitedOppositeDirection, PriorityQueue<Node> pq) {
         for (Edge e : g.adj(v)) {
             int w = e.other(v);
             if (visitedThisDirection[w]) continue;  // Skip if already visited at all
@@ -101,12 +104,12 @@ public class BiDirectionalDijkstra {
             if (distTo[w] > distTo[v] + e.weight()) {
                 distTo[w] = distTo[v] + e.weight();
                 edgeTo[w] = e;
-
-                if (pq.contains(w)) {
-                    pq.decreaseKey(w, distTo[w]);
-                } else {
-                    pq.insert(w, distTo[w]);
-                }
+                
+                // if (pq.contains(w)) {
+                    // pq.decreaseKey(w, distTo[w]);
+                // } else {
+                    pq.add(new Node(w, distTo[w]));
+                // }
                 // System.out.printf("Updated distance to %d: %.2f\n", w, distTo[w]);
             }
 

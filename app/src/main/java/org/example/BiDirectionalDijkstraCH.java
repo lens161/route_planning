@@ -226,9 +226,9 @@ public class BiDirectionalDijkstraCH {
 
 
     public static void main(String[] args) {
-        File graphFile = new File("/home/knor/AA/route4/route-planning/app/src/main/newaug.graph2");
-        File randomPairsFile = new File("/home/knor/AA/route4/route-planning/random_pairs.txt");
-        File outputFile = new File("/home/knor/AA/route4/route-planning/app/src/main/resources/kris_debug2_CHbidijkstra_results.csv");
+        File graphFile = new File("augmented.graph");
+        File randomPairsFile = new File("random_pairs.txt");
+        File outputFile = new File("ch_results.csv");
 
         try {
             // Load the graph

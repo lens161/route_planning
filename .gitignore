@@ -11,5 +11,8 @@ build
 
 .graph
 .csv
-
+bidijkstra_results.csv
+augmented.graph
+ch_results.csv
+dijkstra_results.csv
 exp2.py

@@ -20,12 +20,12 @@ public class routePlanner {
 
         try {
 
-            File input1 = new File("/home/knor/AA/route4/route-planning/app/src/main/newdenmark.graph");
-            Graph g = new Graph(input1);
+        File input1 = new File("newdenmark.graph");
+        Graph g = new Graph(input1);
         Dijkstra dijkstra = new Dijkstra();
-        File outputFile = new File("/home/knor/AA/route4/route-planning/app/src/main/resources/kris_debug2_dijkstra_results.csv");
+        File outputFile = new File("dijkstra_results.csv");
 
-        File randomPairsFile = new File("/home/knor/AA/route4/route-planning/random_pairs.txt");
+        File randomPairsFile = new File("random_pairs.txt");
 
         try (PrintWriter writer = new PrintWriter(outputFile)) {
             writer.println("Source,Target,Distance,ExecutionTime");
@@ -51,20 +51,20 @@ public class routePlanner {
             long duration = endTime - startTime;
             totalExecutionTime += duration;
 
-            int relaxedEdges = dijkstra.getRelaxedEdgesCount();
+            long relaxedEdges = dijkstra.getRelaxedEdgesCount();
             totalRelaxedEdges += relaxedEdges;
 
             
             writer.println(s + "," + t + "," + distance + "," + duration);
             writer.flush();
 
-            // dijkstra.clear();
+            dijkstra.clear();
             // System.out.println("Distance from " + s + " to " + t + ": " + distance);
             
             // System.out.println("\nAverage running time: " + averageExecutionTime + " nanoseconds");
         }
         double averageExecutionTime = totalExecutionTime / (1000 * 1_000_000_000.0); 
-        double averageRelaxedEdges = (double) totalRelaxedEdges / 1000;
+        double averageRelaxedEdges = totalRelaxedEdges / 1000;
         System.out.println("Average Execution Time: " + averageExecutionTime + " seconds");
         System.out.println("Average Relaxed Edges: " + averageRelaxedEdges);
 

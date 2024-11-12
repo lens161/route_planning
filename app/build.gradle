@@ -10,6 +10,8 @@ plugins {
     id 'application'
 }
 
+File dijkstraResults = file('dijkstra_results.csv')
+
 repositories {
     // Use Maven Central for resolving dependencies.
     mavenCentral()

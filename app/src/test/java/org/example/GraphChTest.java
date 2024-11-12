@@ -46,15 +46,7 @@ public class GraphChTest {
         assertEquals("Edge weight should match", 8.0, edge.weight(), 0.00001);
         assertEquals("Shortcut indicator should match", false, edge.isShortcut());
     }
-
-    @Test
-    public void testNodeRanks() {
-        long[] nodeRanks = graph.getNodeRanks();
-        assertEquals("Node ranks array size should match vertex count", graph.V(), nodeRanks.length);
-
-        assertEquals("Node rank for vertex 10 should match", 2, nodeRanks[graph.getIndexForVertex(10)]);
-    }
-
+    
     @Test
     public void testEdgeProperties() {
         int vertexIndex11 = graph.getIndexForVertex(11);

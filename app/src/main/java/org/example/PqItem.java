@@ -1,5 +1,6 @@
 package org.example;
 
+// for use in contraction hierarchie
 public class PqItem implements Comparable<PqItem>{
 
         private int index;

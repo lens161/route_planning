@@ -18,6 +18,7 @@ public class BiDirectionalDijkstraCH {
     private PriorityQueue<Node> pqForward;
     private PriorityQueue<Node> pqBackward;
     private int relaxedEdgesCount;
+    private List<Integer> reconstructedPath;
 
     private double bestPathDistance;
     private int meetingPoint; // index of the meeting point
@@ -51,6 +52,8 @@ public class BiDirectionalDijkstraCH {
             // Source or target vertex not found
             return -1;
         }
+        if (s == t)
+            return 0;
 
         distToForward[s] = 0.0;
         distToBackward[t] = 0.0;
@@ -61,26 +64,52 @@ public class BiDirectionalDijkstraCH {
         pqForward.add(new Node(s, distToForward[s]));
         pqBackward.add(new Node(t, distToBackward[t]));
 
-        while (!pqForward.isEmpty() && !pqBackward.isEmpty()) {
-            // Termination condition
-            if (pqForward.peek().dist + pqBackward.peek().dist >= bestPathDistance) {
+        boolean directionIsForward = true; // r = true (forward)
+
+        while (!pqForward.isEmpty() || !pqBackward.isEmpty()) {
+            double minForward = pqForward.isEmpty() ? Double.POSITIVE_INFINITY : pqForward.peek().dist;
+            double minBackward = pqBackward.isEmpty() ? Double.POSITIVE_INFINITY : pqBackward.peek().dist;
+
+            if (bestPathDistance <= Math.min(minForward, minBackward)) {
                 break;
             }
 
-            // Decide which direction to expand
-            if (pqForward.peek().dist <= pqBackward.peek().dist) {
-                Node node = pqForward.poll();
-                int v = node.id;
-                if (!visitedForward[v]) {
-                    visitedForward[v] = true;
-                    relaxEdgesCH(g, v, distToForward, edgeToForward, distToBackward, visitedForward, visitedBackward, pqForward, true);
+            // Switch direction if the other queue is not empty
+            if ((directionIsForward && !pqBackward.isEmpty()) || (!directionIsForward && !pqForward.isEmpty())) {
+                directionIsForward = !directionIsForward;
+            }
+
+            if (directionIsForward) {
+                if (!pqForward.isEmpty()) {
+                    Node node = pqForward.poll();
+                    int u = node.id;
+                    if (!visitedForward[u]) {
+                        visitedForward[u] = true;
+
+                        // Update bestPathDistance
+                        if (distToForward[u] + distToBackward[u] < bestPathDistance) {
+                            bestPathDistance = distToForward[u] + distToBackward[u];
+                            meetingPoint = u;
+                        }
+
+                        relaxEdgesCH(g, u, distToForward, edgeToForward, pqForward, true);
+                    }
                 }
             } else {
-                Node node = pqBackward.poll();
-                int v = node.id;
-                if (!visitedBackward[v]) {
-                    visitedBackward[v] = true;
-                    relaxEdgesCH(g, v, distToBackward, edgeToBackward, distToForward, visitedBackward, visitedForward, pqBackward, false);
+                if (!pqBackward.isEmpty()) {
+                    Node node = pqBackward.poll();
+                    int u = node.id;
+                    if (!visitedBackward[u]) {
+                        visitedBackward[u] = true;
+
+                        // Update bestPathDistance
+                        if (distToForward[u] + distToBackward[u] < bestPathDistance) {
+                            bestPathDistance = distToForward[u] + distToBackward[u];
+                            meetingPoint = u;
+                        }
+
+                        relaxEdgesCH(g, u, distToBackward, edgeToBackward, pqBackward, false);
+                    }
                 }
             }
         }
@@ -88,37 +117,80 @@ public class BiDirectionalDijkstraCH {
         return bestPathDistance == Double.POSITIVE_INFINITY ? -1 : bestPathDistance;
     }
 
-    private void relaxEdgesCH(GraphCh g, int v, double[] distTo, EdgeCh[] edgeTo,
-                              double[] oppositeDistTo, boolean[] visitedThisDirection,
-                              boolean[] visitedOppositeDirection, PriorityQueue<Node> pq, boolean isForward) {
-        for (EdgeCh e : g.adj(v)) {
-            int w = e.other(v);
-            relaxedEdgesCount++;
+    private void relaxEdgesCH(GraphCh g, int u, double[] distTo, EdgeCh[] edgeTo,
+                        PriorityQueue<Node> pq, boolean isForward) {
+    for (EdgeCh e : g.adj(u)) {
+        int v = e.other(u); // Get the neighbor node, treating as undirected
 
-            // Ensure only higher rank neighbors are expanded in CH
-            if (isForward && nodeRank[w] < nodeRank[v]) continue;
-            if (!isForward && nodeRank[w] < nodeRank[v]) continue;
+        // Ensure only neighbors with higher ranks are considered for relaxation
+        if (nodeRank[v] < nodeRank[u]) continue;
 
-            // Relax edge
-            if (distTo[w] > distTo[v] + e.weight()) {
-                distTo[w] = distTo[v] + e.weight();
-                edgeTo[w] = e;
-                pq.add(new Node(w, distTo[w]));  // Add updated distance
+        relaxedEdgesCount++;
 
-                // Check for a meeting point
-                if (visitedOppositeDirection[w]) {
-                    double potentialBestDistance = distTo[w] + oppositeDistTo[w];
-                    if (potentialBestDistance < bestPathDistance) {
-                        bestPathDistance = potentialBestDistance;
-                        meetingPoint = w;
-                    }
-                }
-            }
+        // Relax edge in the current direction
+        if (distTo[v] > distTo[u] + e.weight()) {
+            distTo[v] = distTo[u] + e.weight();
+            edgeTo[v] = e;
+            pq.add(new Node(v, distTo[v]));
         }
     }
+}
+
 
     public int getRelaxedEdgesCount() {
         return relaxedEdgesCount;
+    }
+    public List<Long> getPath(GraphCh g) {
+        if (meetingPoint == -1) return null;
+        
+        List<Integer> path = new ArrayList<>();
+        List<Long> vertexIdPath = new ArrayList<>();
+        
+        // Reconstruct forward path from source to meeting point
+        int current = meetingPoint;
+        List<Integer> forwardPath = new ArrayList<>();
+        while (edgeToForward[current] != null) {
+            forwardPath.add(current);
+            EdgeCh edge = edgeToForward[current];
+            current = edge.other(current);
+        }
+        forwardPath.add(current); // Add the source
+        
+        // Reverse and add forward path
+        for (int i = forwardPath.size() - 1; i >= 0; i--) {
+            path.add(forwardPath.get(i));
+        }
+        
+        // Reconstruct backward path from meeting point to target
+        current = meetingPoint;
+        while (edgeToBackward[current] != null) {
+            EdgeCh edge = edgeToBackward[current];
+            current = edge.other(current);
+            path.add(current);
+        }
+        
+        // Convert indices to vertex IDs
+        for (int index : path) {
+            vertexIdPath.add(g.indexToVertexId[index]); // You'll need to store indexToVertexId in the class
+        }
+        
+        // Add debugging information
+        System.out.println("Path details:");
+        double totalDistance = 0;
+        for (int i = 0; i < path.size() - 1; i++) {
+            int v = path.get(i);
+            int w = path.get(i + 1);
+            EdgeCh edge = g.adj[v].get(w); // You'll need access to the adjacency list
+            if (edge != null) {
+                totalDistance += edge.weight();
+                System.out.printf("Edge %d -> %d (IDs: %d -> %d), weight: %.1f, cumulative distance: %.1f%n",
+                    v, w, g.indexToVertexId[v], g.indexToVertexId[w], edge.weight(), totalDistance);
+            }
+        }
+        System.out.println("Total calculated distance: " + totalDistance);
+        System.out.println("Best path distance stored: " + bestPathDistance);
+        
+        return vertexIdPath;
     }
 
     public void clear() {
@@ -135,11 +207,28 @@ public class BiDirectionalDijkstraCH {
         meetingPoint = -1;
     }
 
+    // Checks if the given node has the highest rank in the graph
+    private boolean isHighRankNode(int v) {
+        return nodeRank[v] == Arrays.stream(nodeRank).max().orElse(Long.MAX_VALUE);
+    }
+
+    // Checks if there are edges from 'v' to higher-ranked nodes in the given direction
+    private boolean hasHigherRankedEdges(GraphCh g, int v, boolean isForward) {
+        for (EdgeCh e : g.adj(v)) {
+            int w = e.other(v);
+            // Only check edges that point to higher-ranked nodes
+            if (nodeRank[w] > nodeRank[v]) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
     public static void main(String[] args) {
-        System.out.println("a");
-        File graphFile = new File("/home/knor/route2/route-planning/app/src/main/newaug.graph");
-        File randomPairsFile = new File("/home/knor/route2/route-planning/app/src/main/resources/random_pairs.txt");
-        File outputFile = new File("/home/knor/route2/route-planning/app/src/main/resources/01ch_bidirectional_dijkstra_results.csv");
+        File graphFile = new File("/home/knor/AA/route4/route-planning/app/src/main/newaug.graph2");
+        File randomPairsFile = new File("/home/knor/AA/route4/route-planning/random_pairs.txt");
+        File outputFile = new File("/home/knor/AA/route4/route-planning/app/src/main/resources/kris_debug2_CHbidijkstra_results.csv");
 
         try {
             // Load the graph
@@ -179,6 +268,13 @@ public class BiDirectionalDijkstraCH {
                     // Clear the BiDirectionalDijkstraCH instance for the next pair
                     biDijkstra.clear();
                 }
+                // DEBUG
+                // long s1 = 73206082;
+                // long s2 = 1926705245;
+                // biDijkstra.runBiDirectionalCHDijkstra(graph, s1 , s2 );
+                
+                // List<Long> path = biDijkstra.getPath(graph);
+                // System.out.println("Path vertices: " + path);
 
                 // Calculate and print averages
                 double averageExecutionTime = totalExecutionTime / (numberOfPairs * 1_000_000_000.0);
@@ -191,7 +287,7 @@ public class BiDirectionalDijkstraCH {
                 writer.println("Average Relaxed Edges," + averageRelaxedEdges);
             }
 
-            System.out.println("Bidirectional CH Dijkstra results saved to " + outputFile.getPath());
+            // System.out.println("Bidirectional CH Dijkstra results saved to " + outputFile.getPath());
 
         } catch (IOException e) {
             System.err.println("Error loading files: " + e.getMessage());

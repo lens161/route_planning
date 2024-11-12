@@ -11,19 +11,21 @@ public class routePlanner {
 
 
     public static void main(String[] args) throws IOException {
-        // File input1 = new File("/home/knor/route/route-planning/app/src/main/resources/SmallTest.txt");
+        // File input1 = new File("/home/knor/AA/route4/route-planning/app/src/main/newdenmark.graph");
         // Graph g = new Graph(input1);
         // Dijkstra d1 = new Dijkstra();
         // // System.out.println(g.toString());
-        // System.out.println(d1.runDijkstra(g, 17, 19));
+        // d1.runDijkstra(g, 73206082, 1926705245);
+        // d1.getPath(g, 1926705245);
+
         try {
 
-        File input1 = new File("/home/knor/route2/route-planning/app/src/main/newdenmark.graph");
-        Graph g = new Graph(input1);
+            File input1 = new File("/home/knor/AA/route4/route-planning/app/src/main/newdenmark.graph");
+            Graph g = new Graph(input1);
         Dijkstra dijkstra = new Dijkstra();
-        File outputFile = new File("/home/knor/route2/route-planning/app/src/main/resources/2basic_dijkstra_results.csv");
+        File outputFile = new File("/home/knor/AA/route4/route-planning/app/src/main/resources/kris_debug2_dijkstra_results.csv");
 
-        File randomPairsFile = new File("/home/knor/route2/route-planning/app/src/main/newrandom_pairs.txt");
+        File randomPairsFile = new File("/home/knor/AA/route4/route-planning/random_pairs.txt");
 
         try (PrintWriter writer = new PrintWriter(outputFile)) {
             writer.println("Source,Target,Distance,ExecutionTime");
@@ -77,6 +79,6 @@ public class routePlanner {
         e.printStackTrace();
     }
         // System.out.println(d1.runDijkstra(g, 26672401, 26672400));
-// 
+
 }
 }

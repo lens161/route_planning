@@ -44,6 +44,7 @@ public class BiDirectionalDijkstra {
 
         int s = g.getIndexForVertex(sVertexId);
         int t = g.getIndexForVertex(tVertexId);
+        if (s==t) {return 0;}
 
         distToForward[s] = 0.0;
         distToBackward[t] = 0.0;
@@ -86,8 +87,17 @@ public class BiDirectionalDijkstra {
                             boolean[] visitedOppositeDirection, IndexMinPQ<Double> pq) {
         for (Edge e : g.adj(v)) {
             int w = e.other(v);
+            if (visitedThisDirection[w]) continue;  // Skip if already visited at all
             relaxedEdgesCount++;
 
+            // if (bestPathDistance != Double.POSITIVE_INFINITY) {
+            //     return;  // Return early if the best path has been found
+            // }
+
+            // System.out.printf("Relaxing edge %d-%d with weight %.2f. Current distance to %d: %.2f\n",
+            //     v, w, e.weight(), w, distTo[w]);
+
+            // Relax the edge only if it leads to a shorter path
             if (distTo[w] > distTo[v] + e.weight()) {
                 distTo[w] = distTo[v] + e.weight();
                 edgeTo[w] = e;
@@ -97,6 +107,7 @@ public class BiDirectionalDijkstra {
                 } else {
                     pq.insert(w, distTo[w]);
                 }
+                // System.out.printf("Updated distance to %d: %.2f\n", w, distTo[w]);
             }
 
             if (visitedOppositeDirection[w]) {
@@ -104,6 +115,8 @@ public class BiDirectionalDijkstra {
                 if (potentialBestDistance < bestPathDistance) {
                     bestPathDistance = potentialBestDistance;
                     meetingPoint = w;
+                    // System.out.printf("Updated best path distance to %.2f via meeting point %d\n",
+                    //         bestPathDistance, meetingPoint);
                 }
             }
         }
@@ -127,14 +140,34 @@ public class BiDirectionalDijkstra {
         meetingPoint = -1;
     }
 
-//     public static void main(String[] args) throws FileNotFoundException {
-//         File input1 = new File("/Users/lennart/Documents/00_ITU/03_Sem03/02_Applied_Algorithms/Assignment3/route-planning/denmark.graph");
-//         Graph g = new Graph(input1);
-//         BiDirectionalDijkstra dijkstra = new BiDirectionalDijkstra();
+    //for testing purposes
+    public void verifySymmetry(Graph g) {
+        for (int v = 0; v < g.V(); v++) {
+            for (Edge e : g.adj(v)) {
+                int w = e.other(v);
+                if (g.edgeExists(w, v)) {
+                    double forwardWeight = e.weight();
+                    double backwardWeight = g.getEdgeWeight(w, v);
+                    if (forwardWeight != backwardWeight) {
+                        System.out.printf("Asymmetry detected: Edge %d-%d has weight %.2f, but edge %d-%d has weight %.2f\n",
+                                v, w, forwardWeight, w, v, backwardWeight);
+                    }
+                } else {
+                    System.out.printf("Missing reverse edge: Edge %d-%d exists, but edge %d-%d does not.\n", v, w, w, v);
+                }
+            }
+        }
+    }
+    
 
-//         long start = System.nanoTime();
-//         System.out.println(dijkstra.runBiDirectionalDijkstra(g, 47021985,2064649066));
-//         long end = System.nanoTime();
-//         System.out.println((end - start));
-//     }
+    // public static void main(String[] args) throws FileNotFoundException {
+    //     File input1 = new File("/home/knor/AA/route4/route-planning/app/src/main/newdenmark.graph");
+    //     Graph g = new Graph(input1);
+    //     BiDirectionalDijkstra dijkstra = new BiDirectionalDijkstra();
+
+    //     long start = System.nanoTime();
+    //     System.out.println(dijkstra.runBiDirectionalDijkstra(g, 47021985,2064649066));
+    //     long end = System.nanoTime();
+    //     System.out.println((end - start));
+    // }
 }

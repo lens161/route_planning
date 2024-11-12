@@ -41,5 +41,14 @@ java {
 
 application {
     // Define the main class for the application.
-    mainClass = 'org.example.routePlanning'
+    mainClass = 'org.example.Main'
 }
+
+jar {
+    manifest {
+        attributes(
+            'Main-Class': 'org.example.Main'
+        )
+    }
+}
+

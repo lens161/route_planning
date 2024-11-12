@@ -23,6 +23,7 @@ public class ContractionHierarchy {
     private ThreadLocal<Dijkstra2> threadLocalDijkstra = ThreadLocal.withInitial(Dijkstra2::new);
     private long totalContractNodeTime = 0;
     private int contractedNodeCount = 0;
+    private double totalSecs = 0;
 
     public ContractionHierarchy(Graph graph) {
         this.graph = graph;
@@ -70,7 +71,14 @@ public class ContractionHierarchy {
         // low edge difference -> contract earlier
         // high contracted Neighbours and degree -> contract earlier
         // low importance -> higher up in queue:
-        int importance = -(contractedNeighbors*2  + degree*2) + edgeDifference*10;
+
+        // int importance = -(contractedNeighbors*2  + degree*2) + edgeDifference*10;
+
+        // faster heuristics:
+        int importance = edgeDifference * 14 -(contractedNeighbors*5) +degree*15;
+
+        // old faster:
+        // int importance = edgeDifference * 14 +contractedNeighbors*25 +degree*15;
 
         return importance;
     }
@@ -181,6 +189,7 @@ public class ContractionHierarchy {
         // Total time taken
         long totalTime = System.nanoTime() - startTime;
         double totalSeconds = totalTime / 1e9;
+        totalSecs = totalSeconds;
         System.out.printf("Total contraction time: %.2f seconds%n", totalSeconds);
     }
 
@@ -231,23 +240,7 @@ public class ContractionHierarchy {
         }
 
         // non parallel implementation:
-        // for (int[] pair : neighborPairs) {
-        //     int u = pair[0];
-        //     int w = pair[1];
-        //     double shortcutWeight = neighbors.get(u).weight() + neighbors.get(w).weight();
-
-        //     // Limit witness search to a small number of hops
-        //     boolean hasWitness = witnessSearch(u, w, shortcutWeight, 10);
-
-        //     if (!hasWitness) {
-        //         Edge shortcut = new Edge(u, w, shortcutWeight, v);
-        //         // synchronized call to add graph edge to ensure mutual exclusion for concurrent operations by the stream.
-        //             graph.addEdge(shortcut);
-        //     }
-        // }
-
-        // Process neighbor pairs in parallell
-        neighborPairs.parallelStream().forEach(pair -> {
+        for (int[] pair : neighborPairs) {
             int u = pair[0];
             int w = pair[1];
             double shortcutWeight = neighbors.get(u).weight() + neighbors.get(w).weight();
@@ -258,11 +251,27 @@ public class ContractionHierarchy {
             if (!hasWitness) {
                 Edge shortcut = new Edge(u, w, shortcutWeight, v);
                 // synchronized call to add graph edge to ensure mutual exclusion for concurrent operations by the stream.
-                synchronized (graph) {
                     graph.addEdge(shortcut);
-                }
             }
-        });
+        }
+
+        // Process neighbor pairs in parallell
+        // neighborPairs.parallelStream().forEach(pair -> {
+        //     int u = pair[0];
+        //     int w = pair[1];
+        //     double shortcutWeight = neighbors.get(u).weight() + neighbors.get(w).weight();
+
+        //     // Limit witness search to a small number of hops
+        //     boolean hasWitness = witnessSearch(u, w, shortcutWeight, 10);
+
+        //     if (!hasWitness) {
+        //         Edge shortcut = new Edge(u, w, shortcutWeight, v);
+        //         // synchronized call to add graph edge to ensure mutual exclusion for concurrent operations by the stream.
+        //         synchronized (graph) {
+        //             graph.addEdge(shortcut);
+        //         }
+        //     }
+        // });
 
         long endTime = System.nanoTime();
         totalContractNodeTime += (endTime - startTime);
@@ -295,12 +304,15 @@ public class ContractionHierarchy {
 
                 // For original edges label -1 
                 if (e.c == -1) {
-                    writer.write(originalV + " " + originalW + " " + e.weight() + " -1\n");
+                    writer.write(originalV + " " + originalW + " " + (int)e.weight() + " -1\n");
                 } else {
                     // For shortcut edges label the vertex the shortcut has been contracted from
-                    writer.write(originalV + " " + originalW + " " + e.weight() + " " + graph.getVertexId(e.c) + "\n");
+                    writer.write(originalV + " " + originalW + " " + (int)e.weight() + " " + graph.getVertexId(e.c) + "\n");
                 }
             }
+            double averageTime = (totalContractNodeTime / 1e9) / contractedNodeCount;
+            // writer.write("average contraction time: " + averageTime + "\n") ;
+            // writer.write("total contracttion time:" + totalSecs);
         }
 
     }
@@ -311,11 +323,11 @@ public class ContractionHierarchy {
 
     public static void main(String[] args) throws IOException {
         // Replace with your graph file path
-        Graph graph = new Graph(new File("/Users/lennart/Documents/00_ITU/03_Sem03/02_Applied_Algorithms/Assignment3/route-planning/app/src/main/newdenmark.graph"));
+        Graph graph = new Graph(new File("/home/knor/AA/route4/route-planning/app/src/main/newdenmark.graph"));
 
         ContractionHierarchy ch = new ContractionHierarchy(graph);
 
         ch.preprocess();
-        ch.saveAugmentedGraph("augmented_graph_output_1.graph");
+        ch.saveAugmentedGraph("/home/knor/AA/route4/route-planning/app/src/main/newaug3.graph");
     }
 }

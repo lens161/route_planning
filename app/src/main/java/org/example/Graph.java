@@ -66,6 +66,7 @@ public class Graph {
         sc.close();
     }
 
+
     public void addEdge(Edge e) {
         int v = e.either();
         int w = e.other(v);
@@ -118,5 +119,15 @@ public class Graph {
 
     public boolean edgeExists(int u, int w) {
         return adj[u].containsKey(w);
+    }
+
+    // for testing purposes
+    public double getEdgeWeight(int u, int v) {
+        Edge edge = adj[u].get(v);
+        if (edge != null) {
+            return edge.weight();
+        } else {
+            throw new IllegalArgumentException("Edge does not exist between nodes " + u + " and " + v);
+        }
     }
 }

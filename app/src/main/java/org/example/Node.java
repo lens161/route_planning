@@ -1,5 +1,6 @@
 package org.example;
 
+// this class is used to create nodes for the priority queues
 public class Node implements Comparable<Node> {
     public int id;
     public double dist;

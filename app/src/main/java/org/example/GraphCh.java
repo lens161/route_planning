@@ -10,7 +10,7 @@ public class GraphCh {
     private long E; // Use long if the number of edges is large
     public Map<Integer, EdgeCh>[] adj;
     private Map<Long, Integer> vertexIdToIndexMap; // Map from vertex IDs to indices
-    private long[] indexToVertexId; // Map from indices to vertex IDs
+    long[] indexToVertexId; // Map from indices to vertex IDs
     private List<Vertex2> vertices;  // List to store Vertex2 objects
     private long[] nodeRanks;        // Array to store node ranks
 

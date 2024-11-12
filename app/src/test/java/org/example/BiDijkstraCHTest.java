@@ -15,6 +15,19 @@ public class BiDijkstraCHTest {
     }
 
     @Test
+    public void testDistanceFrom12To15() throws FileNotFoundException {
+        GraphCh graph = createGraph();
+        int vertices = graph.V();
+        long[] nodeRanks = graph.getNodeRanks();
+
+        BiDirectionalDijkstraCH dijkstra = new BiDirectionalDijkstraCH(vertices, nodeRanks);
+
+        double result = dijkstra.runBiDirectionalCHDijkstra(graph, 12, 15);
+
+        assertEquals("Expected shortest path distance from node 12 to node 15 is 4.", 4, Math.round(result));
+    }
+
+    @Test
     public void testDistanceFrom10To16() throws FileNotFoundException {
         GraphCh graph = createGraph();
         int vertices = graph.V();
@@ -40,6 +53,8 @@ public class BiDijkstraCHTest {
         assertEquals("Expected shortest path distance from node 11 to node 19 is 6.", 6, Math.round(result));
     }
 
+
+
     @Test
     public void testSelfDistance() throws FileNotFoundException {
         GraphCh graph = createGraph();
@@ -49,7 +64,7 @@ public class BiDijkstraCHTest {
         BiDirectionalDijkstraCH dijkstra = new BiDirectionalDijkstraCH(vertices, nodeRanks);
 
         double result = dijkstra.runBiDirectionalCHDijkstra(graph, 10, 10);
-        assertEquals("Distance to self returns -1", -1, Math.round(result));
+        assertEquals("Distance to self returns 0", 0, Math.round(result));
     }
 
     @Test

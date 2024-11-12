@@ -141,23 +141,23 @@ public class BiDirectionalDijkstra {
     }
 
     //for testing purposes
-    public void verifySymmetry(Graph g) {
-        for (int v = 0; v < g.V(); v++) {
-            for (Edge e : g.adj(v)) {
-                int w = e.other(v);
-                if (g.edgeExists(w, v)) {
-                    double forwardWeight = e.weight();
-                    double backwardWeight = g.getEdgeWeight(w, v);
-                    if (forwardWeight != backwardWeight) {
-                        System.out.printf("Asymmetry detected: Edge %d-%d has weight %.2f, but edge %d-%d has weight %.2f\n",
-                                v, w, forwardWeight, w, v, backwardWeight);
-                    }
-                } else {
-                    System.out.printf("Missing reverse edge: Edge %d-%d exists, but edge %d-%d does not.\n", v, w, w, v);
-                }
-            }
-        }
-    }
+    // public void verifySymmetry(Graph g) {
+    //     for (int v = 0; v < g.V(); v++) {
+    //         for (Edge e : g.adj(v)) {
+    //             int w = e.other(v);
+    //             if (g.edgeExists(w, v)) {
+    //                 double forwardWeight = e.weight();
+    //                 double backwardWeight = g.getEdgeWeight(w, v);
+    //                 if (forwardWeight != backwardWeight) {
+    //                     System.out.printf("Asymmetry detected: Edge %d-%d has weight %.2f, but edge %d-%d has weight %.2f\n",
+    //                             v, w, forwardWeight, w, v, backwardWeight);
+    //                 }
+    //             } else {
+    //                 System.out.printf("Missing reverse edge: Edge %d-%d exists, but edge %d-%d does not.\n", v, w, w, v);
+    //             }
+    //         }
+    //     }
+    // }
     
 
 //     public static void main(String[] args) throws FileNotFoundException {

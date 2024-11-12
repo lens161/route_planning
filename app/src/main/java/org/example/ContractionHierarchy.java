@@ -20,7 +20,8 @@ public class ContractionHierarchy {
     private Map<Integer, Node> nodeReferences;
     // every Thread gets its own Dijkstra Object such that the individual calls do not interfere with each other
     // so whenever an instance of this special dijkstra is instanciated it will be local to only the thread it was created 
-    private ThreadLocal<Dijkstra2> threadLocalDijkstra = ThreadLocal.withInitial(Dijkstra2::new);
+    // private ThreadLocal<Dijkstra2> threadLocalDijkstra = ThreadLocal.withInitial(Dijkstra2::new);
+    private Dijkstra2 dijkstra;
     private long totalContractNodeTime = 0;
     private int contractedNodeCount = 0;
     private double totalSecs = 0;
@@ -30,6 +31,7 @@ public class ContractionHierarchy {
         this.rank = new int[graph.V()];
         Arrays.fill(rank, -1);
         this.contractionOrder = 0;
+        this.dijkstra = new Dijkstra2();
         // this.threadLocalDijkstra = new Dijkstra2();
     }
 
@@ -75,7 +77,8 @@ public class ContractionHierarchy {
         // int importance = -(contractedNeighbors*2  + degree*2) + edgeDifference*10;
 
         // faster heuristics:
-        int importance = edgeDifference * 14 -(contractedNeighbors*5) +degree*15;
+        int importance = edgeDifference; 
+        // * 14 -(contractedNeighbors*5) +degree*15;
 
         // old faster:
         // int importance = edgeDifference * 14 +contractedNeighbors*25 +degree*15;
@@ -197,14 +200,14 @@ public class ContractionHierarchy {
         for (Edge e : graph.adj[contractedNode].values()) {
             int w = e.other(contractedNode);
             if (rank[w] == -1) { // Only if not already contracted
-                // Recalculates importance
+                // Recalculate importance
                 int newImportance = calculateNodeImportance(w);
 
-                // Removes the old node from the queue
+                // Remove the old node from the queue
                 Node oldNode = nodeReferences.get(w);
                 contractionQueue.remove(oldNode);
 
-                // Creates a new node with updated importance and add it to the queue
+                // Create a new node with updated importance and add it to the queue
                 Node newNode = new Node(w, newImportance);
                 contractionQueue.add(newNode);
                 nodeReferences.put(w, newNode);
@@ -240,23 +243,7 @@ public class ContractionHierarchy {
         }
 
         // non parallel implementation:
-        // for (int[] pair : neighborPairs) {
-        //     int u = pair[0];
-        //     int w = pair[1];
-        //     double shortcutWeight = neighbors.get(u).weight() + neighbors.get(w).weight();
-
-        //     // Limit witness search to a small number of hops
-        //     boolean hasWitness = witnessSearch(u, w, shortcutWeight, 10);
-
-        //     if (!hasWitness) {
-        //         Edge shortcut = new Edge(u, w, shortcutWeight, v);
-        //         // synchronized call to add graph edge to ensure mutual exclusion for concurrent operations by the stream.
-        //             graph.addEdge(shortcut);
-        //     }
-        // }
-
-        // Process neighbor pairs in parallell
-        neighborPairs.parallelStream().forEach(pair -> {
+        for (int[] pair : neighborPairs) {
             int u = pair[0];
             int w = pair[1];
             double shortcutWeight = neighbors.get(u).weight() + neighbors.get(w).weight();
@@ -267,11 +254,27 @@ public class ContractionHierarchy {
             if (!hasWitness) {
                 Edge shortcut = new Edge(u, w, shortcutWeight, v);
                 // synchronized call to add graph edge to ensure mutual exclusion for concurrent operations by the stream.
-                synchronized (graph) {
                     graph.addEdge(shortcut);
-                }
             }
-        });
+        }
+
+        // Process neighbor pairs in parallell
+        // neighborPairs.parallelStream().forEach(pair -> {
+        //     int u = pair[0];
+        //     int w = pair[1];
+        //     double shortcutWeight = neighbors.get(u).weight() + neighbors.get(w).weight();
+
+        //     // Limit witness search to a small number of hops
+        //     boolean hasWitness = witnessSearch(u, w, shortcutWeight, 10);
+
+        //     if (!hasWitness) {
+        //         Edge shortcut = new Edge(u, w, shortcutWeight, v);
+        //         // synchronized call to add graph edge to ensure mutual exclusion for concurrent operations by the stream.
+        //         synchronized (graph) {
+        //             graph.addEdge(shortcut);
+        //         }
+        //     }
+        // });
 
         long endTime = System.nanoTime();
         totalContractNodeTime += (endTime - startTime);
@@ -281,7 +284,7 @@ public class ContractionHierarchy {
     
     //Do witness search from node u to node w within a limited distance and hops.
     private boolean witnessSearch(int uIndex, int wIndex, double maxDistance, int maxHops) {
-        Dijkstra2 dijkstra = threadLocalDijkstra.get();
+        // Dijkstra2 dijkstra = threadLocalDijkstra.get();
         double distance = dijkstra.runDijkstra2(graph, uIndex, wIndex, maxDistance, maxHops, rank);
         return distance <= maxDistance;
     }
@@ -323,11 +326,11 @@ public class ContractionHierarchy {
 
     public static void main(String[] args) throws IOException {
         // Replace with your graph file path
-        Graph graph = new Graph(new File("/Users/lennart/Documents/00_ITU/03_Sem03/02_Applied_Algorithms/Assignment3/route-planning/app/src/main/newdenmark.graph"));
+        Graph graph = new Graph(new File("/Users/lennart/Documents/00_ITU/03_Sem03/02_Applied_Algorithms/Assignment3/route-planning/newdenmark.graph"));
 
         ContractionHierarchy ch = new ContractionHierarchy(graph);
 
         ch.preprocess();
-        ch.saveAugmentedGraph("/Users/lennart/Documents/00_ITU/03_Sem03/02_Applied_Algorithms/Assignment3/route-planning/augmented_graph_output_fast.graph");
+        ch.saveAugmentedGraph("/Users/lennart/Documents/00_ITU/03_Sem03/02_Applied_Algorithms/Assignment3/route-planning/augmented_graph_output.graph");
     }
 }

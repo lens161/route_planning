@@ -63,42 +63,23 @@ public class BiDirectionalDijkstraCH {
         pqForward.add(new Node(s, distToForward[s]));
         pqBackward.add(new Node(t, distToBackward[t]));
 
-        boolean isSourceHighestRank = isHighRankNode(s); // Check if source has highest rank
-        boolean isTargetHighestRank = isHighRankNode(t); // Check if target has highest rank
-
-
-        while (!pqForward.isEmpty() || !pqBackward.isEmpty()) {
-            // Termination condition modified to handle highest-ranked source/target
-            if ((pqForward.isEmpty() || pqBackward.isEmpty()) 
-                && (bestPathDistance != Double.POSITIVE_INFINITY) 
-                && !(isSourceHighestRank && pqBackward.isEmpty()) 
-                && !(isTargetHighestRank && pqForward.isEmpty())) {
+        while (!pqForward.isEmpty() && !pqBackward.isEmpty()) {
+            // Termination condition
+            if (pqForward.peek().dist + pqBackward.peek().dist >= bestPathDistance) {
                 break;
             }
-    
+
             // Decide which direction to expand
-            if (!pqForward.isEmpty() && (pqBackward.isEmpty() || pqForward.peek().dist <= pqBackward.peek().dist)) {
+            if (pqForward.peek().dist <= pqBackward.peek().dist) {
                 Node node = pqForward.poll();
                 int v = node.id;
-    
-                // Check if node 'v' has the highest rank and skip if so (unless it’s the source)
-                if (isHighRankNode(v) && !hasHigherRankedEdges(g, v, true) && v != s) {
-                    continue;
-                }
-    
                 if (!visitedForward[v]) {
                     visitedForward[v] = true;
                     relaxEdgesCH(g, v, distToForward, edgeToForward, distToBackward, visitedBackward, visitedForward, pqForward, true);
                 }
-            } else if (!pqBackward.isEmpty()) {
+            } else {
                 Node node = pqBackward.poll();
                 int v = node.id;
-    
-                // Allow expansion for the target node even if it's the highest rank
-                if (isHighRankNode(v) && !hasHigherRankedEdges(g, v, false) && v != t) {
-                    continue;
-                }
-    
                 if (!visitedBackward[v]) {
                     visitedBackward[v] = true;
                     relaxEdgesCH(g, v, distToBackward, edgeToBackward, distToForward, visitedForward, visitedBackward, pqBackward, false);
@@ -114,12 +95,10 @@ public class BiDirectionalDijkstraCH {
                               boolean[] visitedOppositeDirection, PriorityQueue<Node> pq, boolean isForward) {
         for (EdgeCh e : g.adj(v)) {
             int w = e.other(v);
-
-            // Ensure only higher rank neighbors are expanded in CH
-            if (nodeRank[w] < nodeRank[v]) {
-                //System.out.println(nodeRank[w] + " is lower than " + nodeRank[v]); 
-                continue;}
             
+            // Ensure only higher rank neighbors are expanded in CH
+            if (nodeRank[w] < nodeRank[v]) continue;
+            // if (!isForward && nodeRank[w] < nodeRank[v]) continue;
             relaxedEdgesCount++;
 
             // Relax edge
@@ -135,12 +114,7 @@ public class BiDirectionalDijkstraCH {
                         bestPathDistance = potentialBestDistance;
                         meetingPoint = w;
                     }
-                    //System.out.println("Forward visited node: " + v);
-                    //System.out.println("Backwards visited node: " + w);
                 }
-                
-                //System.out.printf("Relaxing edge: %d -> %d with distance %.2f\n", v, w, distTo[w]);
-
             }
         }
     }
@@ -163,27 +137,10 @@ public class BiDirectionalDijkstraCH {
         meetingPoint = -1;
     }
 
-    // Checks if the given node has the highest rank in the graph
-    private boolean isHighRankNode(int v) {
-        return nodeRank[v] == Arrays.stream(nodeRank).max().orElse(Long.MAX_VALUE);
-    }
-
-    // Checks if there are edges from 'v' to higher-ranked nodes in the given direction
-    private boolean hasHigherRankedEdges(GraphCh g, int v, boolean isForward) {
-        for (EdgeCh e : g.adj(v)) {
-            int w = e.other(v);
-            // Only check edges that point to higher-ranked nodes
-            if (nodeRank[w] > nodeRank[v]) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     public static void main(String[] args) {
-        File graphFile = new File("/home/najj/applied_algo/route-planning/app/src/main/newaug.graph");
-        File randomPairsFile = new File("/home/najj/applied_algo/route-planning/app/src/main/newrandom_pairs.txt");
-        File outputFile = new File("/home/najj/applied_algo/route-planning/app/src/main/resources/naja_debug2_CHbidijkstra_results.csv");
+        File graphFile = new File("/Users/lennart/Documents/00_ITU/03_Sem03/02_Applied_Algorithms/Assignment3/route-planning/augmented_graph_output.graph");
+        File randomPairsFile = new File("/Users/lennart/Documents/00_ITU/03_Sem03/02_Applied_Algorithms/Assignment3/route-planning/random_pairs.txt");
+        File outputFile = new File("/Users/lennart/Documents/00_ITU/03_Sem03/02_Applied_Algorithms/Assignment3/route-planning/ch_results.csv");
 
         try {
             // Load the graph
@@ -199,7 +156,7 @@ public class BiDirectionalDijkstraCH {
             long totalExecutionTime = 0;
             int totalRelaxedEdges = 0;
             int numberOfPairs = pairs.size();
-
+            
             // Prepare to write the output
             try (PrintWriter writer = new PrintWriter(new FileWriter(outputFile))) {
                 writer.println("Source,Target,Distance,ExecutionTime");
@@ -217,7 +174,7 @@ public class BiDirectionalDijkstraCH {
                     totalExecutionTime += duration;
                     totalRelaxedEdges += biDijkstra.getRelaxedEdgesCount();
 
-                    writer.printf("%d,%d,%.5f,%d%n", source, target, distance, duration);
+                    writer.printf("%d,%d,%.0f,%d%n", source, target, distance, duration);
                     writer.flush();
 
                     // Clear the BiDirectionalDijkstraCH instance for the next pair

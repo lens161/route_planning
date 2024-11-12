@@ -88,6 +88,10 @@ public class Graph {
         return adj[v].values();
     }
 
+    public Map<Integer, Edge> getAdj(int v){
+        return adj[v];
+    }
+
     public int getIndexForVertex(long vertexId) {
         return vertexIdToIndexMap.getOrDefault(vertexId, -1);
     }

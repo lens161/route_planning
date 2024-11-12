@@ -25,7 +25,7 @@ public class Main {
                 ContractionHierarchy ch = new ContractionHierarchy(graph);
         
                 ch.preprocess();
-                ch.saveAugmentedGraph("/Users/lennart/Documents/00_ITU/03_Sem03/02_Applied_Algorithms/Assignment3/route-planning/augmented_graph_output_fast.graph");
+                ch.saveAugmentedGraph("/Users/lennart/Documents/00_ITU/03_Sem03/02_Applied_Algorithms/Assignment3/route-planning/augmented_graph_output.graph");
                 break;
             case "dijkstra":
                 runDijkstra();

@@ -20,7 +20,7 @@ public class biRoutePlanner2 {
         }
 
         BiDirectionalDijkstra biDijkstra = new BiDirectionalDijkstra();
-        File outputFile = new File("/home/knor/AA/route4/route-planning/app/src/main/resources/kris_debug2_dijkstra_results.csv");
+        File outputFile = new File("/home/knor/AA/route4/route-planning/app/src/main/resources/kris_debug2_bidijkstra_results.csv");
 
         try (PrintWriter writer = new PrintWriter(outputFile)) {
             writer.println("Source,Target,Distance,ExecutionTime");

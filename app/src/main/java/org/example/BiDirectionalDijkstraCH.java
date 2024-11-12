@@ -18,6 +18,7 @@ public class BiDirectionalDijkstraCH {
     private PriorityQueue<Node> pqForward;
     private PriorityQueue<Node> pqBackward;
     private int relaxedEdgesCount;
+    private List<Integer> reconstructedPath;
 
     private double bestPathDistance;
     private int meetingPoint; // index of the meeting point
@@ -122,7 +123,7 @@ public class BiDirectionalDijkstraCH {
         int v = e.other(u); // Get the neighbor node, treating as undirected
 
         // Ensure only neighbors with higher ranks are considered for relaxation
-        if (isForward && nodeRank[v] < nodeRank[u]) continue;
+        if (nodeRank[v] < nodeRank[u]) continue;
 
         relaxedEdgesCount++;
 
@@ -138,6 +139,58 @@ public class BiDirectionalDijkstraCH {
 
     public int getRelaxedEdgesCount() {
         return relaxedEdgesCount;
+    }
+    public List<Long> getPath(GraphCh g) {
+        if (meetingPoint == -1) return null;
+        
+        List<Integer> path = new ArrayList<>();
+        List<Long> vertexIdPath = new ArrayList<>();
+        
+        // Reconstruct forward path from source to meeting point
+        int current = meetingPoint;
+        List<Integer> forwardPath = new ArrayList<>();
+        while (edgeToForward[current] != null) {
+            forwardPath.add(current);
+            EdgeCh edge = edgeToForward[current];
+            current = edge.other(current);
+        }
+        forwardPath.add(current); // Add the source
+        
+        // Reverse and add forward path
+        for (int i = forwardPath.size() - 1; i >= 0; i--) {
+            path.add(forwardPath.get(i));
+        }
+        
+        // Reconstruct backward path from meeting point to target
+        current = meetingPoint;
+        while (edgeToBackward[current] != null) {
+            EdgeCh edge = edgeToBackward[current];
+            current = edge.other(current);
+            path.add(current);
+        }
+        
+        // Convert indices to vertex IDs
+        for (int index : path) {
+            vertexIdPath.add(g.indexToVertexId[index]); // You'll need to store indexToVertexId in the class
+        }
+        
+        // Add debugging information
+        System.out.println("Path details:");
+        double totalDistance = 0;
+        for (int i = 0; i < path.size() - 1; i++) {
+            int v = path.get(i);
+            int w = path.get(i + 1);
+            EdgeCh edge = g.adj[v].get(w); // You'll need access to the adjacency list
+            if (edge != null) {
+                totalDistance += edge.weight();
+                System.out.printf("Edge %d -> %d (IDs: %d -> %d), weight: %.1f, cumulative distance: %.1f%n",
+                    v, w, g.indexToVertexId[v], g.indexToVertexId[w], edge.weight(), totalDistance);
+            }
+        }
+        System.out.println("Total calculated distance: " + totalDistance);
+        System.out.println("Best path distance stored: " + bestPathDistance);
+        
+        return vertexIdPath;
     }
 
     public void clear() {
@@ -220,21 +273,21 @@ public class BiDirectionalDijkstraCH {
                 // long s2 = 1926705245;
                 // biDijkstra.runBiDirectionalCHDijkstra(graph, s1 , s2 );
                 
-                // List<Long> path = biDijkstra.getPath();
+                // List<Long> path = biDijkstra.getPath(graph);
                 // System.out.println("Path vertices: " + path);
 
-                // // Calculate and print averages
-                // double averageExecutionTime = totalExecutionTime / (numberOfPairs * 1_000_000_000.0);
-                // double averageRelaxedEdges = (double) totalRelaxedEdges / numberOfPairs;
+                // Calculate and print averages
+                double averageExecutionTime = totalExecutionTime / (numberOfPairs * 1_000_000_000.0);
+                double averageRelaxedEdges = (double) totalRelaxedEdges / numberOfPairs;
 
-                // // Write averages to the console and file
-                // System.out.println("Average Execution Time: " + averageExecutionTime + " seconds");
-                // System.out.println("Average Relaxed Edges: " + averageRelaxedEdges);
-                // writer.println("Average Execution Time," + averageExecutionTime + " seconds");
-                // writer.println("Average Relaxed Edges," + averageRelaxedEdges);
+                // Write averages to the console and file
+                System.out.println("Average Execution Time: " + averageExecutionTime + " seconds");
+                System.out.println("Average Relaxed Edges: " + averageRelaxedEdges);
+                writer.println("Average Execution Time," + averageExecutionTime + " seconds");
+                writer.println("Average Relaxed Edges," + averageRelaxedEdges);
             }
 
-            System.out.println("Bidirectional CH Dijkstra results saved to " + outputFile.getPath());
+            // System.out.println("Bidirectional CH Dijkstra results saved to " + outputFile.getPath());
 
         } catch (IOException e) {
             System.err.println("Error loading files: " + e.getMessage());

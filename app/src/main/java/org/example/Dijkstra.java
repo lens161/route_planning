@@ -1,6 +1,10 @@
 package org.example;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Stack;
+import java.util.Vector;
+
 import edu.princeton.cs.algs4.IndexMinPQ;
 
 public class Dijkstra {
@@ -100,5 +104,61 @@ public class Dijkstra {
         this.distTo = null;
         this.pq = null;
         this.relaxedEdgesCount = 0;
+    }
+    public List<Long> getPath(Graph g, long targetId) {
+        int target = g.getIndexForVertex(targetId);
+        if (target == -1 || !hasPathTo(g, targetId)) {
+            return null; // No path found
+        }
+    
+        List<Long> path = new ArrayList<>();
+        Stack<Integer> stack = new Stack<>();
+    
+        // Trace back the path using edgeTo array
+        int current = target;
+        while (edgeTo[current] != null) {
+            Edge e = edgeTo[current];
+            int next = e.other(current);
+    
+            // Debugging information
+            System.out.printf("Tracing back edge: current = %d, next = %d%n", current, next);
+    
+            stack.push(current); // Add current node to the stack
+            current = next; // Move to the next node in the path
+    
+            // If the path loops back to itself or has invalid nodes, break to avoid infinite loops
+            if (current == target) {
+                System.err.println("Loop detected in path reconstruction.");
+                return null;
+            }
+        }
+    
+        // Add the source node to the stack
+        stack.push(current);
+    
+        // Convert indices to vertex IDs and store them in the path
+        while (!stack.isEmpty()) {
+            path.add(g.getVertexId(stack.pop()));
+        }
+    
+        // Debugging output for the path
+        System.out.println("Path details:");
+        double totalDistance = 0;
+        for (int i = 0; i < path.size() - 1; i++) {
+            int v = g.getIndexForVertex(path.get(i));
+            int w = g.getIndexForVertex(path.get(i + 1));
+            Edge edge = ((Vector<Edge>) g.adj(v)).get(w); // Access the adjacency list for debugging
+    
+            if (edge != null) {
+                totalDistance += edge.weight();
+                System.out.printf("Edge %d -> %d (IDs: %d -> %d), weight: %.1f, cumulative distance: %.1f%n",
+                        v, w, path.get(i), path.get(i + 1), edge.weight(), totalDistance);
+            }
+        }
+    
+        System.out.println("Total calculated distance: " + totalDistance);
+        System.out.println("Best path distance stored: " + distTo[g.getIndexForVertex(targetId)]);
+    
+        return path;
     }
 }

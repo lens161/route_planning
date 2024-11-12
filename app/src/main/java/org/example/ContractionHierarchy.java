@@ -304,10 +304,10 @@ public class ContractionHierarchy {
 
                 // For original edges label -1 
                 if (e.c == -1) {
-                    writer.write(originalV + " " + originalW + " " + e.weight() + " -1\n");
+                    writer.write(originalV + " " + originalW + " " + (int)e.weight() + " -1\n");
                 } else {
                     // For shortcut edges label the vertex the shortcut has been contracted from
-                    writer.write(originalV + " " + originalW + " " + e.weight() + " " + graph.getVertexId(e.c) + "\n");
+                    writer.write(originalV + " " + originalW + " " + (int)e.weight() + " " + graph.getVertexId(e.c) + "\n");
                 }
             }
             double averageTime = (totalContractNodeTime / 1e9) / contractedNodeCount;
@@ -328,6 +328,6 @@ public class ContractionHierarchy {
         ContractionHierarchy ch = new ContractionHierarchy(graph);
 
         ch.preprocess();
-        ch.saveAugmentedGraph("/home/knor/AA/route4/route-planning/app/src/main/newaug.graph2");
+        ch.saveAugmentedGraph("/home/knor/AA/route4/route-planning/app/src/main/newaug3.graph");
     }
 }
